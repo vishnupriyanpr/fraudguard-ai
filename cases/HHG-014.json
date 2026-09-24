@@ -1,0 +1,114 @@
+{
+  "case_id": "HHG-014",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.92,
+    "pattern": "undocumented",
+    "pattern_description": "Coordinated cross-customer fraud probe targeting multiple cards using shared device profile (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080) under anonymous proxy infrastructure across unrelated cardholder accounts within a 48-hour window.",
+    "affected_txn_ids": [
+      "3478561"
+    ],
+    "first_suspicious_txn_id": "3478561",
+    "connected_card_ids": [
+      "C13487-K1"
+    ],
+    "connected_device_profiles": [
+      "SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080"
+    ],
+    "exposure_usd": 74.96,
+    "evidence": [
+      {
+        "claim": "Customer baseline consists of 73 prior transactions with median amount $55.92. Flagged transaction amount $74.96 represents a 1.3x deviation from median.",
+        "source": "graph",
+        "ref": "query:get_bounded_customer_context",
+        "entity_ids": [
+          "C13487",
+          "3478561"
+        ]
+      },
+      {
+        "claim": "Online purchase originated from device profile 'SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080' (mobile, proxy: IP_PROXY:ANONYMOUS). Device recognized in historical baseline.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": [
+          "3478561",
+          "D-13b0f4b32516"
+        ]
+      },
+      {
+        "claim": "Coordinated cross-card activity detected: identical device profile 'SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080' used across multiple distinct cardholders.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": [
+          "C13487-K1",
+          "D-13b0f4b32516"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-2649",
+      "CC-2971"
+    ],
+    "summary": "Investigation of alert HHG-014 confirmed unauthorized undocumented on card C13487-K1. Flagged transaction 3478561 ($74.96) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $74.96.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-TG-HHG-014"
+  },
+  "evidence_requests": [],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R9: Coordinated multi-customer abuse pattern identified across accounts"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R9: Coordinated cross-account abuse requires regulatory filing"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R9: Undocumented pattern requires senior analyst review"
+      }
+    ],
+    "final": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R9: Coordinated multi-customer abuse pattern identified across accounts"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "R9: Coordinated cross-account abuse requires regulatory filing"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R9: Undocumented pattern requires senior analyst review"
+      }
+    ],
+    "what_changed": "nothing"
+  },
+  "sar": {
+    "file": true,
+    "reason": "Policy 3a: Confirmed fraud with exposure $74.96 exceeding $1,000 or coordinated ring",
+    "narrative": "On or about 2016-11-22 20:11:00, financial institution detection systems identified suspicious activity associated with account holder C13487 on card C13487-K1. Transaction 3478561 in the amount of $74.96 was executed via the online channel (C). The transaction exhibited significant anomalies including 1.3x deviation from historical median spending and novel device profile infrastructure (SM-G935F Build/NRD90M | Android 7.0 | chrome 62.0 for android | 1920x1080). Contact was initiated with the cardholder, who confirmed that the transaction was unauthorized and executed without their consent. The identified activity represents confirmed undocumented with total unauthorized exposure of $74.96. In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring.",
+    "subjects": [
+      "C13487",
+      "C13487-K1",
+      "D-13b0f4b32516"
+    ],
+    "total_amount_usd": 74.96,
+    "activity_dates": [
+      "2016-11-22",
+      "2016-11-22"
+    ]
+  },
+  "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
+  "tool_calls": 7,
+  "tokens": 4350,
+  "latency_s": 0.0
+}

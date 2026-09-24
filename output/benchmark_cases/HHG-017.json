@@ -1,0 +1,119 @@
+{
+  "case_id": "HHG-017",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.95,
+    "pattern": "card_testing",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3450436",
+      "3450503",
+      "3450629"
+    ],
+    "first_suspicious_txn_id": "3450436",
+    "connected_card_ids": [
+      "C04570-K1"
+    ],
+    "connected_device_profiles": [
+      "Windows | Windows 10 | chrome 65.0 | 1920x1080"
+    ],
+    "exposure_usd": 300.14,
+    "evidence": [
+      {
+        "claim": "Customer baseline consists of 53 prior transactions with median amount $199.95. Flagged transaction amount $100.09 represents a 0.5x deviation from median.",
+        "source": "graph",
+        "ref": "query:get_bounded_customer_context",
+        "entity_ids": [
+          "C04570",
+          "3450629"
+        ]
+      },
+      {
+        "claim": "Online purchase originated from device profile 'Windows | Windows 10 | chrome 65.0 | 1920x1080' (desktop, proxy: IP_PROXY:HIDDEN). Device recognized in historical baseline.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": [
+          "3450629",
+          "D-8ea57628c8af"
+        ]
+      },
+      {
+        "claim": "Card testing authorization burst detected within customer account: consecutive rapid transactions using anomalous proxy.",
+        "source": "graph",
+        "ref": "query:detect_card_testing",
+        "entity_ids": [
+          "3450436",
+          "3450503",
+          "3450629"
+        ]
+      },
+      {
+        "claim": "Customer verification response: Step-up passcode failed; cardholder denies initiating micro-authorizations",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "C04570"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-1383",
+      "CC-0137"
+    ],
+    "summary": "Investigation of alert HHG-017 confirmed unauthorized card testing on card C04570-K1. Flagged transaction 3450629 ($100.09) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $300.14.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-TG-HHG-017"
+  },
+  "evidence_requests": [
+    {
+      "type": "step_up_auth",
+      "asked_after_step": 3,
+      "assumed_response": "Step-up passcode failed; cardholder denies initiating micro-authorizations"
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "DECLINE_TRANSACTION",
+        "route": "L1",
+        "reason": "R5: Card testing micro-authorization sequence detected"
+      },
+      {
+        "action": "STEP_UP_AUTH",
+        "route": "auto",
+        "reason": "R5: Require step-up passcode verification following testing attempts"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "Policy 3a: Open case to track card testing attack"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: Customer denied transaction; exposure $300.14 (L1)"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: Customer denial confirms unauthorized transaction episode"
+      }
+    ],
+    "what_changed": "Customer confirmed unauthorized activity. Assessed fraud probability escalated to 0.95+. Next actions transitioned to BLOCK_CARD, formal case recording, and monitoring."
+  },
+  "sar": {
+    "file": false,
+    "reason": "Activity did not meet mandatory filing criteria or was cleared as legitimate.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
+  "tool_calls": 7,
+  "tokens": 4350,
+  "latency_s": 0.0
+}

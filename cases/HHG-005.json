@@ -1,0 +1,95 @@
+{
+  "case_id": "HHG-005",
+  "case": {
+    "status": "closed_legitimate",
+    "verdict": "legitimate",
+    "fraud_probability": 0.05,
+    "pattern": "none",
+    "pattern_description": "",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
+    "connected_card_ids": [
+      "C02923-K1"
+    ],
+    "connected_device_profiles": [
+      "iOS Device | iOS 9.3.5 | mobile safari 9.0 | 1024x768"
+    ],
+    "exposure_usd": 0.0,
+    "evidence": [
+      {
+        "claim": "Customer baseline consists of 91 prior transactions with median amount $117.01. Flagged transaction amount $100.07 represents a 0.9x deviation from median.",
+        "source": "graph",
+        "ref": "query:get_bounded_customer_context",
+        "entity_ids": [
+          "C02923",
+          "3523199"
+        ]
+      },
+      {
+        "claim": "Online purchase originated from device profile 'iOS Device | iOS 9.3.5 | mobile safari 9.0 | 1024x768' (mobile, proxy: nan). Device recognized in historical baseline.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": [
+          "3523199",
+          "D-23d041ab0794"
+        ]
+      },
+      {
+        "claim": "Customer verification response: Customer confirms they authorized this purchase and remain in physical possession of card",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "C02923"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-2400",
+      "CC-2717"
+    ],
+    "summary": "Investigation of alert HHG-005 concluded that transaction 3523199 ($100.07) is consistent with customer C02923's normal baseline. Customer verification confirmed authorized activity. The case is resolved and closed as legitimate under Policy Rule R3 with no disruption to the cardholder.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-TG-HHG-005"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 3,
+      "assumed_response": "Customer confirms they authorized this purchase and remain in physical possession of card"
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: Probability < 0.70 on single signal; verify with cardholder before blocking"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "Policy 3a: Open internal case as fraud probability reached 0.30"
+      }
+    ],
+    "final": [
+      {
+        "action": "CLOSE_NO_FRAUD",
+        "route": "auto",
+        "reason": "R3: Customer confirmed the transaction was authorized"
+      }
+    ],
+    "what_changed": "Customer confirmed authorizing the transaction. Assessed fraud probability resolved to legitimate (<=0.05). Pending verification resolved to CLOSE_NO_FRAUD per Rule R3."
+  },
+  "sar": {
+    "file": false,
+    "reason": "Activity did not meet mandatory filing criteria or was cleared as legitimate.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Customer confirmation and consistent graph baseline settled the investigation as legitimate.",
+  "tool_calls": 7,
+  "tokens": 4350,
+  "latency_s": 0.0
+}
