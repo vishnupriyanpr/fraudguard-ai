@@ -1,0 +1,41 @@
+// ============================================================================
+// TigerGraph Loading Job for IEEE-CIS / HHGoa Dataset
+// ============================================================================
+
+USE GRAPH FraudInvestigationGraph
+
+CREATE LOADING JOB load_fraud_data FOR GRAPH FraudInvestigationGraph {
+    DEFINE FILENAME tx_file;
+    DEFINE FILENAME id_file;
+    DEFINE FILENAME closed_file;
+
+    // Load Customers
+    LOAD tx_file TO VERTEX HHG_Customer VALUES($customer_id)
+        USING HEADER="true", SEPARATOR=",";
+
+    // Load Transactions
+    LOAD tx_file TO VERTEX HHG_Transaction VALUES(
+        $TransactionID, $ts, $TransactionAmt, $channel, $risk_score,
+        $ProductCD, $card1, $addr1, $P_emaildomain, $R_emaildomain, $TransactionID
+    ) USING HEADER="true", SEPARATOR=",";
+
+    // Load Edges: Customer to Transaction
+    LOAD tx_file TO EDGE HHG_HAS_TRANSACTION VALUES($customer_id, $TransactionID)
+        USING HEADER="true", SEPARATOR=",";
+
+    // Load Edges: Transaction to Billing Region
+    LOAD tx_file TO VERTEX HHG_BillingRegion VALUES($addr1)
+        WHERE $addr1 IS NOT EMPTY
+        USING HEADER="true", SEPARATOR=",";
+    LOAD tx_file TO EDGE HHG_BILLED_IN VALUES($TransactionID, $addr1)
+        WHERE $addr1 IS NOT EMPTY
+        USING HEADER="true", SEPARATOR=",";
+
+    // Load Closed Cases
+    LOAD closed_file TO VERTEX HHG_ClosedCase VALUES(
+        $case_id, $outcome, $pattern, $exposure_usd, $analyst_notes, $opened_at, $closed_at
+    ) USING HEADER="true", SEPARATOR=",";
+
+    LOAD closed_file TO EDGE HHG_CLOSED_CASE_ON_CARD VALUES($case_id, $card_id)
+        USING HEADER="true", SEPARATOR=",";
+}

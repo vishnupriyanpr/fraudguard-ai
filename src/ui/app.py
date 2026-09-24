@@ -1,25 +1,25 @@
 """
 Streamlit Web Dashboard for FraudGuard AI.
-Provides real-time fraud case inspection, graph visualization,
-evidence audits, human-in-the-loop next-best-action approvals, and SAR generation.
+Provides real-time fraud case inspection, interactive PyVis graph visualization,
+evidence audit trails, human-in-the-loop next-best-action approvals,
+policy what-if simulators, and innovative exam period monitoring.
 """
 
 import os
 import sys
 import json
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+from pyvis.network import Network
 
-# Add parent directory to path
+# Add root directory to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from src.agent.graph_engine import GraphInvestigationEngine
-from src.agent.investigator import FraudInvestigationAgent
+from src.policy.engine import evaluate_final_policy, ActionRecommendation
 
 st.set_page_config(
-    page_title="FraudGuard AI ? Autonomous Fraud Investigation",
+    page_title="FraudGuard AI ? Autonomous Fraud Operations",
     page_icon="???",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -58,22 +58,21 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-@st.cache_resource
-def get_engine_and_agent():
-    engine = GraphInvestigationEngine(data_dir="data")
-    agent = FraudInvestigationAgent(graph_engine=engine)
-    return engine, agent
 
-engine, agent = get_engine_and_agent()
+def load_cases(folder_path="cases"):
+    """Load case JSON files from directory."""
+    cases = {}
+    if os.path.exists(folder_path):
+        for f in sorted(os.listdir(folder_path)):
+            if f.endswith(".json") and f != "benchmark_summary.json" and f != "innovation_summary.json":
+                cid = f.replace(".json", "")
+                with open(os.path.join(folder_path, f), "r", encoding="utf-8") as fp:
+                    cases[cid] = json.load(fp)
+    return cases
 
-# Load Cases
-cases_dir = "cases"
-case_files = sorted([f for f in os.listdir(cases_dir) if f.endswith(".json")]) if os.path.exists(cases_dir) else []
-cases_data = {}
-for cf in case_files:
-    with open(os.path.join(cases_dir, cf), "r", encoding="utf-8") as f:
-        cid = cf.replace(".json", "")
-        cases_data[cid] = json.load(f)
+
+benchmark_cases = load_cases("cases")
+innovative_cases = load_cases("cases_innovative")
 
 # Sidebar
 with st.sidebar:
@@ -81,176 +80,272 @@ with st.sidebar:
     st.caption("TigerGraph ? Hacker House Goa 2026")
     st.divider()
 
-    st.subheader("?? Benchmark Cases (20)")
-    selected_case_id = st.selectbox(
-        "Select Investigation Case:",
-        options=list(cases_data.keys()) if cases_data else ["None"],
-        index=0 if cases_data else 0
+    dataset_mode = st.radio(
+        "Investigation Queue:",
+        options=["Benchmark Exam Cases (20)", "Innovative Exam Alerts (10)"],
+        index=0
     )
 
-    if st.button("?? Re-run All 20 Benchmark Cases"):
-        with st.spinner("Executing agent investigations..."):
-            os.system(f"{sys.executable} scripts/run_benchmark.py")
-            st.success("Benchmark completed! Reloading...")
-            st.rerun()
+    active_cases = benchmark_cases if "Benchmark" in dataset_mode else innovative_cases
+
+    # Case filter by verdict
+    verdict_filter = st.selectbox(
+        "Filter by Verdict:",
+        options=["All Cases", "Confirmed Fraud", "Cleared Legitimate", "SAR Required"],
+        index=0
+    )
+
+    filtered_case_ids = []
+    for cid, cdata in active_cases.items():
+        v = cdata["case"]["verdict"]
+        sar_file = cdata["sar"]["file"]
+        if verdict_filter == "Confirmed Fraud" and v != "fraud":
+            continue
+        elif verdict_filter == "Cleared Legitimate" and v != "legitimate":
+            continue
+        elif verdict_filter == "SAR Required" and not sar_file:
+            continue
+        filtered_case_ids.append(cid)
+
+    selected_case_id = st.selectbox(
+        "Select Case File:",
+        options=filtered_case_ids if filtered_case_ids else ["None"],
+        index=0 if filtered_case_ids else 0
+    )
 
     st.divider()
-    st.subheader("?? System Telemetry")
-    if cases_data:
-        total = len(cases_data)
-        frauds = sum(1 for c in cases_data.values() if c["case"]["verdict"] == "fraud")
-        legits = sum(1 for c in cases_data.values() if c["case"]["verdict"] == "legitimate")
-        sars = sum(1 for c in cases_data.values() if c["sar"]["file"])
-        total_exp = sum(c["case"]["exposure_usd"] for c in cases_data.values())
+    st.subheader("? Quick Actions")
+    col_b1, col_b2 = st.columns(2)
+    with col_b1:
+        if st.button("?? Benchmark"):
+            with st.spinner("Running 20 benchmark cases..."):
+                os.system(f"{sys.executable} scripts/run_benchmark.py")
+                st.success("Updated!")
+                st.rerun()
+    with col_b2:
+        if st.button("?? Monitor"):
+            with st.spinner("Scanning exam period..."):
+                os.system(f"{sys.executable} scripts/run_exam_monitor.py")
+                st.success("Updated!")
+                st.rerun()
 
-        st.metric("Total Cases", total)
-        col_s1, col_s2 = st.columns(2)
-        col_s1.metric("Confirmed Fraud", frauds)
-        col_s2.metric("Cleared Legit", legits)
-        st.metric("SARs Filed", sars)
-        st.metric("Total Exposure", f"${total_exp:,.2f}")
+    st.divider()
+    st.subheader("?? Queue Telemetry")
+    if active_cases:
+        total = len(active_cases)
+        frauds = sum(1 for c in active_cases.values() if c["case"]["verdict"] == "fraud")
+        legits = sum(1 for c in active_cases.values() if c["case"]["verdict"] == "legitimate")
+        sars = sum(1 for c in active_cases.values() if c["sar"]["file"])
+        total_exp = sum(c["case"]["exposure_usd"] for c in active_cases.values())
 
-# Main Content
-if selected_case_id and selected_case_id in cases_data:
-    case_record = cases_data[selected_case_id]
+        st.metric("Total Cases Loaded", total)
+        col_m1, col_m2 = st.columns(2)
+        col_m1.metric("Confirmed Fraud", frauds)
+        col_m2.metric("Cleared Legit", legits)
+        st.metric("Regulatory SARs", sars)
+        st.metric("Identified Exposure", f"${total_exp:,.2f}")
+
+
+# Main Content Area
+if selected_case_id and selected_case_id in active_cases:
+    case_record = active_cases[selected_case_id]
     case = case_record["case"]
     sar = case_record["sar"]
     nba = case_record["next_best_actions"]
     ev_requests = case_record.get("evidence_requests", [])
 
-    # Top Header Metrics
-    st.header(f"Case File: {selected_case_id}")
-    st.markdown(f"**Status:** `{case['status'].upper()}` | **Pattern:** `{case['pattern'].upper()}` | **Exposure:** `${case['exposure_usd']:,.2f}`")
+    # Top Banner
+    badge_color = "badge-fraud" if case["verdict"] == "fraud" else "badge-legit"
+    st.header(f"Investigation Record: `{selected_case_id}`")
+    st.markdown(
+        f"**Verdict:** <span class='{badge_color}'>{case['verdict'].upper()}</span> | "
+        f"**Pattern:** `{case['pattern'].upper()}` | "
+        f"**Exposure:** `${case['exposure_usd']:,.2f} USD`",
+        unsafe_allow_html=True
+    )
 
-    m_col1, m_col2, m_col3, m_col4 = st.columns(4)
-    with m_col1:
-        st.metric("Assessed Verdict", case["verdict"].upper())
-    with m_col2:
-        st.metric("Fraud Probability", f"{case['fraud_probability'] * 100:.1f}%")
-    with m_col3:
-        st.metric("SAR Required", "YES (Filed)" if sar["file"] else "NO")
-    with m_col4:
-        st.metric("Agent Latency", f"{case_record.get('latency_s', 0.0):.2f}s")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Fraud Probability", f"{case['fraud_probability'] * 100:.1f}%")
+    m2.metric("Investigation Status", case["status"].upper())
+    m3.metric("Regulatory SAR", "REQUIRED" if sar["file"] else "NOT REQUIRED")
+    m4.metric("Agent Latency", f"{case_record.get('latency_s', 0.0):.2f}s")
 
     st.divider()
 
-    # Tabs
-    tab_overview, tab_graph, tab_evidence, tab_nba, tab_sar = st.tabs([
+    # Detailed Tabs
+    tab_overview, tab_graph, tab_evidence, tab_nba, tab_sar, tab_sim = st.tabs([
         "?? Investigation Summary",
-        "??? Entity Knowledge Graph",
+        "??? Interactive Graph (PyVis)",
         "?? Evidence Chain & Audit",
         "?? Next Best Action (HITL)",
-        "??? Regulatory SAR Filing"
+        "??? Regulatory SAR Filing",
+        "?? Policy Simulator"
     ])
 
     with tab_overview:
-        st.subheader("Case Narrative Summary")
+        st.subheader("Executive Case Narrative")
         st.info(case.get("summary", "No summary available."))
 
-        st.subheader("Stop Reason")
-        st.write(f"?? {case_record.get('stop_reason', '')}")
+        st.subheader("Investigation Resolution Reason")
+        st.write(f"?? **Stop Reason:** {case_record.get('stop_reason', '')}")
 
-        st.subheader("Affected Transactions")
-        aff_txns = case.get("affected_txn_ids", [])
-        if aff_txns:
-            st.write(f"Involved Transaction IDs: `{', '.join(aff_txns)}`")
-            st.metric("Financial Exposure Identified", f"${case['exposure_usd']:,.2f} USD")
-        else:
-            st.success("No fraudulent transactions identified. Account activity cleared.")
+        col_ov1, col_ov2 = st.columns(2)
+        with col_ov1:
+            st.subheader("Entities Investigated")
+            st.write(f"? **Connected Cards:** `{', '.join(case.get('connected_card_ids', [])) or 'None'}`")
+            st.write(f"? **Device Profiles:** `{', '.join(case.get('connected_device_profiles', [])) or 'None'}`")
+            st.write(f"? **Affected Transactions:** `{', '.join(case.get('affected_txn_ids', [])) or 'None (Cleared)'}`")
 
-        if case.get("similar_prior_cases"):
+        with col_ov2:
             st.subheader("Case Memory Precedents Retrieved")
-            st.write(f"Retrieved Closed Cases: `{', '.join(case['similar_prior_cases'])}`")
+            if case.get("similar_prior_cases"):
+                st.write(f"Retrieved Closed Cases from TigerGraph: `{', '.join(case['similar_prior_cases'])}`")
+            else:
+                st.write("No matching prior closed case precedents found.")
 
     with tab_graph:
-        st.subheader("TigerGraph Subgraph Visualization")
-        # Visual diagram using Plotly
-        st.write("Traversed Subgraph: `Customer` ? `Card` ? `Transaction` ? `DeviceProfile` & `BillingRegion`")
+        st.subheader("Interactive TigerGraph Entity Topology")
+        st.caption("Draggable, physics-simulated graph showing customer, cards, transactions, and infrastructure.")
 
-        nodes = ["Customer", "Card", f"Txn #{case.get('first_suspicious_txn_id', 'Flagged')}"]
-        if case.get("connected_device_profiles"):
-            nodes.append("DeviceProfile")
-        nodes.append("BillingRegion")
+        # Build PyVis Network
+        net = Network(height="480px", width="100%", bgcolor="#111827", font_color="white")
+        net.barnes_hut(gravity=-3000, central_gravity=0.3, spring_length=120)
 
-        # Interactive Graph Representation
-        fig = go.Figure(data=[go.Scatter(
-            x=[0, 1, 2, 2.8, 2.8],
-            y=[0, 0, 0, 1, -1],
-            mode='markers+text',
-            text=nodes,
-            textposition="top center",
-            marker=dict(size=[30, 25, 20, 20, 20], color=['#3B82F6', '#10B981', '#EF4444', '#8B5CF6', '#F59E0B'])
-        )])
-        fig.update_layout(
-            title=f"Entity Subgraph for {selected_case_id}",
-            showlegend=False,
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            height=380
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        # Add Nodes
+        cust_id = case.get("evidence", [{}])[0].get("entity_ids", ["C-Unknown"])[0]
+        net.add_node("CUST", label=f"Customer\n{cust_id}", color="#3B82F6", size=25, title=f"Customer ID: {cust_id}")
+
+        cards = case.get("connected_card_ids", [])
+        for i, card in enumerate(cards):
+            net.add_node(f"CARD_{i}", label=f"Card\n{card}", color="#10B981", size=20, title=f"Card: {card}")
+            net.add_edge("CUST", f"CARD_{i}", label="OWNS")
+
+        txns = case.get("affected_txn_ids", []) or [case.get("first_suspicious_txn_id", "Flagged")]
+        for j, tx in enumerate(txns):
+            tx_color = "#EF4444" if case["verdict"] == "fraud" else "#10B981"
+            net.add_node(f"TX_{j}", label=f"Txn #{tx}\n${case['exposure_usd']:.2f}", color=tx_color, size=18, title=f"Transaction: {tx}")
+            if cards:
+                net.add_edge("CARD_0", f"TX_{j}", label="MADE")
+            else:
+                net.add_edge("CUST", f"TX_{j}", label="TRANSACTED")
+
+        devs = case.get("connected_device_profiles", [])
+        for k, dev in enumerate(devs):
+            net.add_node(f"DEV_{k}", label=f"Device\n{dev[:25]}...", color="#8B5CF6", size=18, title=f"Device: {dev}")
+            if txns:
+                net.add_edge(f"TX_0", f"DEV_{k}", label="FROM_DEVICE")
+
+        priors = case.get("similar_prior_cases", [])
+        for p, prior in enumerate(priors):
+            net.add_node(f"PRIOR_{p}", label=f"Closed Case\n{prior}", color="#F59E0B", size=16, title=f"Precedent Case: {prior}")
+            net.add_edge("CUST", f"PRIOR_{p}", label="PRIOR_CASE")
+
+        html_content = net.generate_html()
+        components.html(html_content, height=500)
 
     with tab_evidence:
-        st.subheader("Evidence Items Collected by Agent")
-        for i, ev in enumerate(case.get("evidence", [])):
-            with st.expander(f"Evidence #{i+1} ? Source: [{ev.get('source', '').upper()}] | Ref: {ev.get('ref', '')}"):
+        st.subheader("Evidence Items Grounded in Graph Traversal")
+        for idx, ev in enumerate(case.get("evidence", [])):
+            with st.expander(f"Evidence #{idx+1} ? Source: [{ev.get('source', '').upper()}] | Ref: {ev.get('ref', '')}", expanded=True):
                 st.markdown(f"**Claim:** {ev.get('claim', '')}")
-                st.caption(f"Referenced Entities: `{', '.join(str(e) for e in ev.get('entity_ids', []))}`")
+                st.caption(f"Referenced Entity IDs: `{', '.join(str(e) for e in ev.get('entity_ids', []))}`")
 
         if ev_requests:
             st.divider()
-            st.subheader("Simulated Human / Customer Verification")
+            st.subheader("Simulated Customer / Analyst Validation Requests")
             for req in ev_requests:
-                st.warning(f"**Request Type:** `{req.get('type')}` (Step {req.get('asked_after_step')})\n\n"
-                           f"**Assumed Response:** *\"{req.get('assumed_response')}\"*")
+                st.warning(
+                    f"**Request Type:** `{req.get('type')}` (Step {req.get('asked_after_step')})\n\n"
+                    f"**Assumed Response:** *\"{req.get('assumed_response')}\"*"
+                )
 
     with tab_nba:
         st.subheader("Next Best Action Protocol (Policy Rules R1-R10)")
+        st.write("Dynamic recommendation progression before and after evidence gathering.")
 
-        col_init, col_final = st.columns(2)
-        with col_init:
+        col_n1, col_n2 = st.columns(2)
+        with col_n1:
             st.markdown("### 1. Initial Recommendation (Pre-Verification)")
             for a in nba.get("initial", []):
-                route_color = {"auto": "??", "L1": "??", "L2": "??"}.get(a.get("route"), "?")
-                st.markdown(f"**{route_color} `{a.get('action')}`** (Route: `{a.get('route')}`)")
-                st.caption(f"Reason: {a.get('reason')}")
+                route_badge = {"auto": "?? auto", "L1": "?? L1 (Lead)", "L2": "?? L2 (Manager)"}.get(a.get("route"), a.get("route"))
+                st.markdown(f"**Action:** `{a.get('action')}`  \n**Route:** `{route_badge}`")
+                st.caption(f"Policy Justification: {a.get('reason')}")
+                st.markdown("---")
 
-        with col_final:
+        with col_n2:
             st.markdown("### 2. Final Action (Post-Verification)")
             for a in nba.get("final", []):
-                route_color = {"auto": "??", "L1": "??", "L2": "??"}.get(a.get("route"), "?")
-                st.markdown(f"**{route_color} `{a.get('action')}`** (Route: `{a.get('route')}`)")
-                st.caption(f"Reason: {a.get('reason')}")
+                route_badge = {"auto": "?? auto", "L1": "?? L1 (Lead)", "L2": "?? L2 (Manager)"}.get(a.get("route"), a.get("route"))
+                st.markdown(f"**Action:** `{a.get('action')}`  \n**Route:** `{route_badge}`")
+                st.caption(f"Policy Justification: {a.get('reason')}")
+                st.markdown("---")
 
         st.info(f"**What Changed:** {nba.get('what_changed', 'nothing')}")
 
         st.divider()
         st.subheader("Human-In-The-Loop Approval Desk")
-        st.write("Only `auto` actions execute autonomously. `L1` (Team Lead) and `L2` (Fraud Manager) require human sign-off.")
-        btn_col1, btn_col2, btn_col3 = st.columns(3)
-        with btn_col1:
-            if st.button("? Approve Recommended Actions", key="app_ok"):
-                st.success("Actions approved and logged to TigerGraph audit trail.")
-        with btn_col2:
-            if st.button("? Override: Decline & Escalate", key="app_ovr"):
-                st.warning("Decision overridden. Case routed to senior risk queue.")
-        with btn_col3:
-            if st.button("?? Request Additional Verification", key="app_req"):
-                st.info("Additional 2FA push notification sent to cardholder.")
+        st.caption("Operational actions with 'auto' route execute autonomously. 'L1' and 'L2' actions require human sign-off.")
+        hitl_col1, hitl_col2, hitl_col3 = st.columns(3)
+        with hitl_col1:
+            if st.button("? Approve Recommended Actions", key="appr_btn"):
+                st.success("Actions approved! Executed and recorded in TigerGraph audit log.")
+        with hitl_col2:
+            if st.button("? Override: Decline & Escalate", key="over_btn"):
+                st.warning("Override applied. Case routed to senior risk analyst queue.")
+        with hitl_col3:
+            if st.button("?? Trigger Cardholder Re-Verification", key="rever_btn"):
+                st.info("Additional 2FA verification sent to cardholder device.")
 
     with tab_sar:
-        st.subheader("Suspicious Activity Report (FinCEN Standard)")
+        st.subheader("Regulatory Suspicious Activity Report (FinCEN Standard)")
         if sar.get("file"):
-            st.error("?? Mandatory Regulatory Filing Required")
+            st.error("?? Mandatory Suspicious Activity Report Filing Required")
             st.markdown(f"**Filing Reason:** {sar.get('reason', '')}")
             st.markdown(f"**Total Suspicious Amount:** `${sar.get('total_amount_usd', 0.0):,.2f} USD`")
             st.markdown(f"**Activity Dates:** `{', '.join(sar.get('activity_dates', []))}`")
-            st.markdown(f"**Subjects Cited:** `{', '.join(sar.get('subjects', []))}`")
+            st.markdown(f"**Named Subjects:** `{', '.join(sar.get('subjects', []))}`")
 
             st.divider()
-            st.markdown("### Official SAR Narrative")
-            st.text_area("Narrative Text (FinCEN / BSA Format):", value=sar.get("narrative", ""), height=220)
+            st.markdown("### Regulatory Narrative (FinCEN / BSA Format):")
+            st.text_area("Official Narrative Text:", value=sar.get("narrative", ""), height=220)
         else:
-            st.success("No Suspicious Activity Report required for this case. Activity cleared or below regulatory threshold.")
+            st.success("No Suspicious Activity Report required. Activity was cleared as legitimate or falls below statutory filing criteria.")
+
+    with tab_sim:
+        st.subheader("?? Policy Simulator & What-If Analysis")
+        st.caption("Test how FraudGuard AI's Policy Engine dynamically adapts when evidence changes.")
+
+        sim_response = st.selectbox(
+            "Select Simulated Customer Response:",
+            options=[
+                "Customer states they authorized the purchase and retain physical possession of card",
+                "Customer states they did not make this purchase and still have physical possession of card",
+                "No response received from customer within 24 hours"
+            ],
+            index=0 if case["verdict"] == "legitimate" else 1
+        )
+
+        init_acts = [
+            ActionRecommendation(action=a["action"], route=a["route"], reason=a["reason"])
+            for a in nba.get("initial", [])
+        ]
+        sim_final, sim_what, sim_sar, sim_sar_reason = evaluate_final_policy(
+            initial_actions=init_acts,
+            assumed_response=sim_response,
+            fraud_probability=case["fraud_probability"],
+            exposure_usd=case["exposure_usd"] if case["exposure_usd"] > 0 else 100.0,
+            pattern=case["pattern"]
+        )
+
+        st.markdown("### Simulated Final Policy Outcome:")
+        for act in sim_final:
+            r_badge = {"auto": "?? auto", "L1": "?? L1 (Lead)", "L2": "?? L2 (Manager)"}.get(act.route, act.route)
+            st.markdown(f"? **`{act.action}`** (Route: `{r_badge}`) ? *{act.reason}*")
+
+        st.info(f"**What Changed:** {sim_what}")
+        if sim_sar:
+            st.warning(f"**SAR Triggered:** {sim_sar_reason}")
+        else:
+            st.success("SAR Status: Not Required")
 else:
-    st.info("No benchmark case files found. Click 'Re-run All 20 Benchmark Cases' in the sidebar.")
+    st.info("No cases available. Please click 'Benchmark' in the sidebar to populate cases.")

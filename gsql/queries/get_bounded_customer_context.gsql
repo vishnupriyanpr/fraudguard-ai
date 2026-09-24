@@ -1,0 +1,52 @@
+// ============================================================================
+// Query: get_bounded_customer_context
+// Bounded As-Of Customer Profile & Chronological Transaction History
+// ============================================================================
+
+CREATE QUERY get_bounded_customer_context(
+    STRING customer_id_param,
+    STRING as_of_timestamp
+) FOR GRAPH FraudInvestigationGraph {
+
+    TYPEDEF TUPLE<STRING txn_id, STRING ts, DOUBLE amount, STRING channel,
+                  DOUBLE risk_score, STRING product_code, STRING region> TxnSummary;
+
+    ListAccum<TxnSummary> @customer_txns;
+    SumAccum<INT> @total_txn_count;
+    SumAccum<DOUBLE> @total_amount;
+    AvgAccum @avg_amount;
+    SetAccum<STRING> @known_regions;
+    SetAccum<STRING> @known_devices;
+    SetAccum<STRING> @known_product_codes;
+
+    Start = {HHG_Customer.*};
+    Cust = SELECT c FROM Start:c WHERE c.customer_id == customer_id_param;
+
+    // Get all transactions prior to as_of_timestamp (Zero Look-ahead Bias)
+    PriorTxns = SELECT t
+        FROM Cust:c -(HHG_HAS_TRANSACTION)-> HHG_Transaction:t
+        WHERE t.ts <= as_of_timestamp
+        ACCUM
+            c.@customer_txns += TxnSummary(t.txn_id, t.ts, t.amount_usd,
+                                           t.channel, t.risk_score, t.product_code,
+                                           t.billing_region),
+            c.@total_txn_count += 1,
+            c.@total_amount += t.amount_usd,
+            c.@avg_amount += t.amount_usd,
+            c.@known_product_codes += t.product_code
+        ORDER BY t.ts ASC;
+
+    // Accumulate known billing regions
+    Regions = SELECT r
+        FROM PriorTxns:t -(HHG_BILLED_IN)-> HHG_BillingRegion:r
+        ACCUM Cust.@known_regions += r.billing_region;
+
+    // Accumulate known devices
+    Devices = SELECT d
+        FROM PriorTxns:t -(HHG_FROM_DEVICE)-> HHG_DeviceProfile:d
+        ACCUM Cust.@known_devices += d.device_id;
+
+    PRINT Cust[Cust.customer_id, Cust.@total_txn_count, Cust.@total_amount,
+               Cust.@avg_amount, Cust.@known_regions, Cust.@known_devices,
+               Cust.@known_product_codes, Cust.@customer_txns];
+}

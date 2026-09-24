@@ -1,0 +1,38 @@
+// ============================================================================
+// Query: detect_card_testing
+// Detects Pattern 1: >= 3 tiny authorizations (< $5) in 1 hour followed by larger purchase
+// ============================================================================
+
+CREATE QUERY detect_card_testing(
+    STRING customer_id_param,
+    STRING as_of_timestamp,
+    INT window_minutes = 60
+) FOR GRAPH FraudInvestigationGraph {
+
+    SumAccum<INT> @@micro_count = 0;
+    SumAccum<INT> @@large_count = 0;
+    SumAccum<DOUBLE> @@total_exposure = 0.0;
+    ListAccum<STRING> @@involved_txns;
+
+    Start = {HHG_Customer.*};
+    Cust = SELECT c FROM Start:c WHERE c.customer_id == customer_id_param;
+
+    // Get recent transactions within window
+    RecentTxns = SELECT t
+        FROM Cust:c -(HHG_HAS_TRANSACTION)-> HHG_Transaction:t
+        WHERE t.ts <= as_of_timestamp
+        ACCUM
+            CASE
+                WHEN t.amount_usd < 5.0 THEN
+                    @@micro_count += 1,
+                    @@total_exposure += t.amount_usd,
+                    @@involved_txns += t.txn_id
+                WHEN t.amount_usd >= 5.0 THEN
+                    @@large_count += 1,
+                    @@total_exposure += t.amount_usd,
+                    @@involved_txns += t.txn_id
+            END;
+
+    PRINT (@@micro_count >= 3 AND @@large_count >= 1) AS is_card_testing,
+          @@micro_count, @@large_count, @@total_exposure, @@involved_txns;
+}

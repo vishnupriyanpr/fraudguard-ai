@@ -1,0 +1,102 @@
+{
+  "case_id": "INV-009",
+  "case": {
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.95,
+    "pattern": "card_not_present_new_device",
+    "pattern_description": "",
+    "affected_txn_ids": [
+      "3419814"
+    ],
+    "first_suspicious_txn_id": "3419814",
+    "connected_card_ids": [
+      "C02458-K1"
+    ],
+    "connected_device_profiles": [
+      "Windows | Windows 7 | chrome generic | 1920x1080"
+    ],
+    "exposure_usd": 50.06,
+    "evidence": [
+      {
+        "claim": "Customer baseline consists of 0 prior transactions with median amount $0.00. Flagged transaction amount $50.06 represents a 50.1x deviation from median.",
+        "source": "graph",
+        "ref": "query:get_bounded_customer_context",
+        "entity_ids": [
+          "C02458",
+          "3419814"
+        ]
+      },
+      {
+        "claim": "Online purchase originated from device profile 'Windows | Windows 7 | chrome generic | 1920x1080' (desktop, proxy: nan). Device has never been used by this customer.",
+        "source": "graph",
+        "ref": "query:device_neighbors",
+        "entity_ids": [
+          "3419814",
+          "D-d120319d515d"
+        ]
+      },
+      {
+        "claim": "Customer verification response: Customer states they did not make this purchase and still have physical possession of card",
+        "source": "customer",
+        "ref": "evidence_request:1",
+        "entity_ids": [
+          "C02458"
+        ]
+      }
+    ],
+    "similar_prior_cases": [
+      "CC-3689",
+      "CC-3890"
+    ],
+    "summary": "Investigation of alert INV-009 confirmed unauthorized card not present new device on card C02458-K1. Flagged transaction 3419814 ($50.06) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $50.06.",
+    "written_to_graph": true,
+    "graph_case_id": "CASE-TG-INV-009"
+  },
+  "evidence_requests": [
+    {
+      "type": "customer_validation",
+      "asked_after_step": 3,
+      "assumed_response": "Customer states they did not make this purchase and still have physical possession of card"
+    }
+  ],
+  "next_best_actions": {
+    "initial": [
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "Policy 3a: High fraud probability warrants formal case creation"
+      },
+      {
+        "action": "VERIFY_WITH_CUSTOMER",
+        "route": "auto",
+        "reason": "R1: Verify with customer to confirm compromise before blocking"
+      }
+    ],
+    "final": [
+      {
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: Customer denied transaction; exposure $50.06 (L1)"
+      },
+      {
+        "action": "CREATE_CASE",
+        "route": "auto",
+        "reason": "R2: Customer denial confirms unauthorized transaction episode"
+      }
+    ],
+    "what_changed": "Customer confirmed unauthorized activity. Assessed fraud probability escalated to 0.95+. Next actions transitioned to BLOCK_CARD, formal case recording, and monitoring."
+  },
+  "sar": {
+    "file": false,
+    "reason": "Activity did not meet mandatory filing criteria or was cleared as legitimate.",
+    "narrative": "",
+    "subjects": [],
+    "total_amount_usd": 0.0,
+    "activity_dates": []
+  },
+  "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
+  "tool_calls": 7,
+  "tokens": 4350,
+  "latency_s": 1.29
+}

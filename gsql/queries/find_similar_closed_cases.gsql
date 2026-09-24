@@ -1,0 +1,26 @@
+// ============================================================================
+// Query: find_similar_closed_cases
+// Case Memory Retrieval: Find past closed investigations prior to as_of_timestamp
+// ============================================================================
+
+CREATE QUERY find_similar_closed_cases(
+    STRING pattern_param,
+    STRING customer_id_param,
+    STRING card_id_param,
+    STRING as_of_timestamp,
+    INT top_k = 3
+) FOR GRAPH FraudInvestigationGraph {
+
+    ListAccum<STRING> @@similar_case_ids;
+
+    Start = {HHG_ClosedCase.*};
+
+    // Filter by temporal closed_at <= as_of_timestamp
+    PriorCases = SELECT cc FROM Start:cc
+        WHERE cc.closed_at <= as_of_timestamp AND
+              (cc.pattern == pattern_param OR cc.outcome == "confirmed_fraud")
+        LIMIT top_k;
+
+    PRINT PriorCases[PriorCases.case_id, PriorCases.outcome, PriorCases.pattern,
+                     PriorCases.exposure_usd, PriorCases.analyst_notes];
+}

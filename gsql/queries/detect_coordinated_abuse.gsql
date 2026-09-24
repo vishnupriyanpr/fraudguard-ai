@@ -1,0 +1,39 @@
+// ============================================================================
+// Query: detect_coordinated_abuse (Undocumented Coordinated Rings)
+// Detects Pattern 6 / Undocumented: Multi-customer sharing of same device profile
+// ============================================================================
+
+CREATE QUERY detect_coordinated_abuse(
+    STRING device_id_param,
+    STRING as_of_timestamp
+) FOR GRAPH FraudInvestigationGraph {
+
+    SetAccum<STRING> @@connected_customers;
+    SetAccum<STRING> @@connected_cards;
+    SetAccum<STRING> @@connected_txns;
+    SumAccum<INT> @@anonymous_proxy_count = 0;
+
+    DevStart = {HHG_DeviceProfile.*};
+    Device = SELECT d FROM DevStart:d WHERE d.device_id == device_id_param;
+
+    Txns = SELECT t
+        FROM Device:d <(HHG_FROM_DEVICE:e)- HHG_Transaction:t
+        WHERE t.ts <= as_of_timestamp
+        ACCUM
+            @@connected_txns += t.txn_id,
+            CASE WHEN e.proxy_type LIKE "%ANONYMOUS%" OR e.proxy_type LIKE "%HIDDEN%" THEN
+                @@anonymous_proxy_count += 1
+            END;
+
+    Custs = SELECT c
+        FROM Txns:t <(HHG_HAS_TRANSACTION)- HHG_Customer:c
+        ACCUM @@connected_customers += c.customer_id;
+
+    Cards = SELECT card
+        FROM Txns:t <(HHG_KNOWN_CARD_TRANSACTION)- HHG_Card:card
+        ACCUM @@connected_cards += card.card_id;
+
+    PRINT (@@connected_customers.size() >= 3) AS is_coordinated_ring,
+          @@connected_customers, @@connected_cards, @@connected_txns,
+          @@anonymous_proxy_count;
+}

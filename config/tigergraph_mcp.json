@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "tigergraph": {
+      "command": "python",
+      "args": ["-m", "tigergraph_mcp"],
+      "env": {
+        "TG_HOST": "https://your-instance.i.tgcloud.io",
+        "TG_GRAPHNAME": "FraudInvestigationGraph",
+        "TG_USERNAME": "tigergraph",
+        "TG_PASSWORD": "your_password",
+        "TG_SECRET": "your_secret",
+        "ALLOWED_TOOLS": "read-only"
+      }
+    }
+  },
+  "capabilities": {
+    "tools": [
+      "tigergraph__run_installed_query",
+      "tigergraph__get_vertex_neighbors",
+      "tigergraph__get_vertex",
+      "tigergraph__search_top_k_similarity",
+      "tigergraph__run_gsql"
+    ]
+  }
+}
