@@ -89,5 +89,5 @@
   "stop_reason": "Customer confirmation and consistent graph baseline settled the investigation as legitimate.",
   "tool_calls": 7,
   "tokens": 4350,
-  "latency_s": 0.01
+  "latency_s": 0.02
 }

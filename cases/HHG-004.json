@@ -90,7 +90,7 @@
   "sar": {
     "file": true,
     "reason": "Policy 3a & R2/R9: Confirmed unauthorized fraud with exposure $128.33 meeting statutory filing threshold.",
-    "narrative": "On or about 2016-12-29 07:53:54, financial institution detection systems identified suspicious activity associated with account holder C08106 on card C08106-K1. Transaction 3583227 in the amount of $128.33 was executed via the online channel (C). The transaction exhibited significant anomalies including 4.6x deviation from historical median spending and novel device profile infrastructure (firefox 47.0). Contact was initiated with the cardholder, who confirmed that the transaction was unauthorized and executed without their consent. The identified activity represents confirmed card not present new device with total unauthorized exposure of $128.33. In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring.",
+    "narrative": "On December 29, 2016, at 07:53:54, Transaction 3583227 in the amount of $128.33 was initiated via an online channel using Customer C08106's Card C08106-K1, triggering a fraud alert due to the \"card_not_present_new_device\" pattern. This activity is deemed suspicious as it represents a 4.6x deviation from the customer's established transactional baseline and was subsequently denied by the cardholder, indicating unauthorized use of the instrument. The transaction violates internal security policies regarding device recognition and customer authentication, suggesting potential account takeover or card cloning. In response, the institution immediately blocked Card C08106-K1 to prevent further unauthorized exposure, which totaled $128.33, and the card has been retained for potential law enforcement investigation.",
     "subjects": [
       "C08106",
       "C08106-K1",
@@ -103,7 +103,7 @@
     ]
   },
   "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
-  "tool_calls": 7,
-  "tokens": 4350,
-  "latency_s": 0.0
+  "tool_calls": 8,
+  "tokens": 4800,
+  "latency_s": 0.78
 }

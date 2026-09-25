@@ -95,7 +95,7 @@
   "sar": {
     "file": true,
     "reason": "Policy 3a & R2: Confirmed unauthorized activity with total exposure of $1000.03, exceeding the $1,000 regulatory filing threshold",
-    "narrative": "On or about 2016-12-02 18:18:27, financial institution detection systems identified suspicious activity associated with account holder C10434 on card C10434-K1. Transaction 3506725 in the amount of $1000.03 was executed via the online channel (R). The transaction exhibited significant anomalies including 13.2x deviation from historical median spending and novel device profile infrastructure (Windows | Windows 10 | edge 16.0 | 1366x768). Contact was initiated with the cardholder, who confirmed that the transaction was unauthorized and executed without their consent. The identified activity represents confirmed card not present new device with total unauthorized exposure of $1000.03. In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring.",
+    "narrative": "On December 2, 2016, at 18:18:27, a $1,000.03 online transaction (ID 3506725) was initiated on Card C10434-K1 associated with Customer C10434, triggering a fraud alert due to the \"card_not_present_new_device\" pattern. This activity is deemed suspicious as it represents a 13.2x deviation from the customer's established spending baseline and was subsequently denied by the cardholder, indicating unauthorized use. The transaction violates internal security policies regarding device recognition and transaction velocity limits, suggesting potential account takeover or card cloning. In response, the institution immediately blocked Card C10434-K1 to prevent further unauthorized exposure, which totaled $1,000.03, and the card has been retained for potential law enforcement investigation.",
     "subjects": [
       "C10434",
       "C10434-K1",
@@ -108,7 +108,7 @@
     ]
   },
   "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
-  "tool_calls": 7,
-  "tokens": 4350,
-  "latency_s": 0.0
+  "tool_calls": 8,
+  "tokens": 4800,
+  "latency_s": 0.69
 }

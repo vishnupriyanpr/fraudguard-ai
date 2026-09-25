@@ -87,5 +87,5 @@
   "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
   "tool_calls": 7,
   "tokens": 4350,
-  "latency_s": 0.0
+  "latency_s": 0.01
 }

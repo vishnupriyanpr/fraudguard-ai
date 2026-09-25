@@ -89,7 +89,7 @@
   "sar": {
     "file": true,
     "reason": "Policy 3a & R2: Sub-threshold structuring pattern with 4 rapid online purchases totaling $1,906.07, exceeding the $1,000 regulatory filing threshold.",
-    "narrative": "On or about 2016-11-22 02:30:00, financial institution detection systems identified suspicious activity associated with account holder C07297 on card C07297-K1. Transaction 3476682 in the amount of $482.12 was executed via the online channel (C). The transaction exhibited significant anomalies including 7.6x deviation from historical median spending and novel device profile infrastructure (Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080). Contact was initiated with the cardholder, who confirmed that the transaction was unauthorized and executed without their consent. The identified activity represents confirmed undocumented with total unauthorized exposure of $1906.07. In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring.",
+    "narrative": "On November 22, 2016, at 02:30:00, Transaction 3476682 in the amount of $482.12 was detected on Card C07297-K1, belonging to Customer C07297, as part of a series of rapid online purchases totaling $1,906.07 that occurred within a 30-minute window. This activity is deemed suspicious because the transaction amounts ($478.95, $456.96, $488.04, and $482.12) were deliberately structured to remain just below the $500 internal review threshold, a pattern that does not align with any of the five documented fraud typologies, specifically lacking low-value testing or new regional indicators. The activity represents a significant deviation, 7.6 times the customer's baseline spending, and was confirmed as unauthorized by the cardholder's explicit denial, indicating a violation of internal fraud detection policies and potential",
     "subjects": [
       "C07297",
       "C07297-K1",
@@ -102,7 +102,7 @@
     ]
   },
   "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
-  "tool_calls": 7,
-  "tokens": 4350,
-  "latency_s": 0.0
+  "tool_calls": 8,
+  "tokens": 4800,
+  "latency_s": 0.82
 }

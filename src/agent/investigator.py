@@ -35,6 +35,7 @@ from src.policy.engine import (
 from src.graphrag.vector_search import FraudGraphRAG
 from src.memory.case_memory import CaseMemoryManager
 from src.agent.evoi import shannon_entropy, EVOIAnalyzer, ParetoCounterfactualOptimizer
+from src.agent.llm_client import GroqLLMClient
 
 
 class FraudInvestigationAgent:
@@ -48,6 +49,7 @@ class FraudInvestigationAgent:
         self.memory = CaseMemoryManager(graph_engine)
         self.evoi = EVOIAnalyzer()
         self.pareto = ParetoCounterfactualOptimizer()
+        self.llm = GroqLLMClient()
 
     def investigate_case(self, case_row: Dict[str, Any]) -> CaseSubmissionFormat:
         """
@@ -477,6 +479,7 @@ class FraudInvestigationAgent:
             if dev_hash:
                 sar_subjects.append(dev_hash)
 
+            # Base regulatory narrative
             sar_narrative = (
                 f"On or about {opened_at}, financial institution detection systems identified suspicious activity "
                 f"associated with account holder {customer_id} on card {card_id}. Transaction {flagged_txn_id} "
@@ -488,6 +491,25 @@ class FraudInvestigationAgent:
                 f"In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed "
                 f"under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring."
             )
+
+            # Invoke Groq LPU frontier model for regulatory synthesis
+            if self.llm.enabled:
+                llm_sar = self.llm.synthesize_sar_narrative(
+                    case_id=case_id,
+                    customer_id=customer_id,
+                    card_id=card_id,
+                    flagged_txn_id=str(flagged_txn_id),
+                    amount=amount,
+                    exposure=exposure,
+                    channel=channel,
+                    pattern=pattern,
+                    pattern_desc=pattern_desc or pattern.replace("_", " "),
+                    opened_at=opened_at,
+                    evidence_summary=f"Deviation {dev_ratio:.1f}x from baseline; cardholder denial; network pattern {pattern}"
+                )
+                if llm_sar.get("status") == "success" and llm_sar.get("content"):
+                    sar_narrative = llm_sar["content"]
+                    tool_calls += 1
 
         sar_detail = SARDetail(
             file=sar_file,

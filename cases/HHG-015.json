@@ -90,7 +90,7 @@
   "sar": {
     "file": true,
     "reason": "Policy 3a & R2/R9: Confirmed unauthorized fraud with exposure $599.94 meeting statutory filing threshold.",
-    "narrative": "On or about 2016-11-17 19:03:36, financial institution detection systems identified suspicious activity associated with account holder C03042 on card C03042-K1. Transaction 3464869 in the amount of $599.94 was executed via the online channel (R). The transaction exhibited significant anomalies including 6.0x deviation from historical median spending and novel device profile infrastructure (Trident/7.0 | Windows 8.1 | ie 11.0 for desktop | 1680x1050). Contact was initiated with the cardholder, who confirmed that the transaction was unauthorized and executed without their consent. The identified activity represents confirmed card not present new device with total unauthorized exposure of $599.94. In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring.",
+    "narrative": "On November 17, 2016, at 19:03:36, Transaction 3464869 in the amount of $599.94 was initiated via an online channel using Card C03042-K1, associated with Customer C03042, triggering the fraud detection rule \"card_not_present_new_device.\" This activity is deemed suspicious as it represents a 6.0x deviation from the customer's established transactional baseline and was subsequently denied by the cardholder as unauthorized, indicating a total unauthorized exposure of $599.94. The use of a new device in a card-not-present environment, combined with the significant statistical anomaly and explicit customer denial, constitutes a violation of internal fraud prevention policies and suggests potential account takeover or identity theft. In response, the institution has blocked Card C03042-K1 and retained all relevant records for potential law enforcement referral in accordance with 31 CFR 1020.320.",
     "subjects": [
       "C03042",
       "C03042-K1",
@@ -103,7 +103,7 @@
     ]
   },
   "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
-  "tool_calls": 7,
-  "tokens": 4350,
-  "latency_s": 0.0
+  "tool_calls": 8,
+  "tokens": 4800,
+  "latency_s": 0.77
 }

@@ -1,5 +1,5 @@
 {
-  "benchmark_run_at": "2026-09-25T21:20:58.977484",
+  "benchmark_run_at": "2026-09-25T22:09:15.706444",
   "total_cases_investigated": 20,
   "verdict_distribution": {
     "fraud": 12,
@@ -8,6 +8,6 @@
   },
   "regulatory_sars_filed": 5,
   "total_fraud_exposure_identified_usd": 4614.16,
-  "total_run_latency_s": 12.42,
-  "average_latency_per_case_s": 0.62
+  "total_run_latency_s": 16.57,
+  "average_latency_per_case_s": 0.83
 }
