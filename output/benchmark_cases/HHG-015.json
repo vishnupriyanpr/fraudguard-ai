@@ -49,7 +49,7 @@
       "CC-0615",
       "CC-1313"
     ],
-    "summary": "Investigation of alert HHG-015 confirmed unauthorized card not present new device on card C03042-K1. Flagged transaction 3464869 ($599.94) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $599.94.",
+    "summary": "Investigation of alert HHG-015 confirmed unauthorized card not present new device on card C03042-K1. Flagged transaction 3464869 ($599.94) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $599.94. [Active Learning: H_init=0.81b -> H_final=0.29b, Net EVOI=+$0.00]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-015"
   },
@@ -88,12 +88,19 @@
     "what_changed": "Customer confirmed unauthorized activity. Assessed fraud probability escalated to 0.95+. Next actions transitioned to BLOCK_CARD, formal case recording, and monitoring."
   },
   "sar": {
-    "file": false,
-    "reason": "Activity did not meet mandatory filing criteria or was cleared as legitimate.",
-    "narrative": "",
-    "subjects": [],
-    "total_amount_usd": 0.0,
-    "activity_dates": []
+    "file": true,
+    "reason": "Policy 3a & R2/R9: Confirmed unauthorized fraud with exposure $599.94 meeting statutory filing threshold.",
+    "narrative": "On or about 2016-11-17 19:03:36, financial institution detection systems identified suspicious activity associated with account holder C03042 on card C03042-K1. Transaction 3464869 in the amount of $599.94 was executed via the online channel (R). The transaction exhibited significant anomalies including 6.0x deviation from historical median spending and novel device profile infrastructure (Trident/7.0 | Windows 8.1 | ie 11.0 for desktop | 1680x1050). Contact was initiated with the cardholder, who confirmed that the transaction was unauthorized and executed without their consent. The identified activity represents confirmed card not present new device with total unauthorized exposure of $599.94. In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring.",
+    "subjects": [
+      "C03042",
+      "C03042-K1",
+      "D-884ff18a5b80"
+    ],
+    "total_amount_usd": 599.94,
+    "activity_dates": [
+      "2016-11-17",
+      "2016-11-17"
+    ]
   },
   "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
   "tool_calls": 7,

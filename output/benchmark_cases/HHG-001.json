@@ -45,7 +45,7 @@
       "CC-1066",
       "CC-1673"
     ],
-    "summary": "Investigation of alert HHG-001 concluded that transaction 3514030 ($77.07) is consistent with customer C12382's normal baseline. Customer verification confirmed authorized activity. The case is resolved and closed as legitimate under Policy Rule R3 with no disruption to the cardholder.",
+    "summary": "Investigation of alert HHG-001 concluded that transaction 3514030 ($77.07) is consistent with customer C12382's normal baseline. Customer verification confirmed authorized activity. The case is resolved and closed as legitimate under Policy Rule R3 with no disruption to the cardholder. [Active Learning: H_init=0.93b -> H_final=0.29b, Net EVOI=+$11.97]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-001"
   },
@@ -89,5 +89,5 @@
   "stop_reason": "Customer confirmation and consistent graph baseline settled the investigation as legitimate.",
   "tool_calls": 7,
   "tokens": 4350,
-  "latency_s": 0.0
+  "latency_s": 0.01
 }

@@ -4,19 +4,22 @@
     "status": "closed_fraud",
     "verdict": "fraud",
     "fraud_probability": 0.95,
-    "pattern": "card_not_present_new_device",
-    "pattern_description": "",
+    "pattern": "undocumented",
+    "pattern_description": "Rapid online purchases each just under a $500 review threshold ($478.95, $456.96, $488.04, $482.12 within 30 minutes), consistent with amounts chosen to stay below review thresholds. It fits none of the five documented patterns: there is no low-value testing run and no new region.",
     "affected_txn_ids": [
+      "3476602",
+      "3476633",
+      "3476665",
       "3476682"
     ],
-    "first_suspicious_txn_id": "3476682",
+    "first_suspicious_txn_id": "3476602",
     "connected_card_ids": [
       "C07297-K1"
     ],
     "connected_device_profiles": [
       "Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080"
     ],
-    "exposure_usd": 482.12,
+    "exposure_usd": 1906.07,
     "evidence": [
       {
         "claim": "Customer baseline consists of 201 prior transactions with median amount $63.04. Flagged transaction amount $482.12 represents a 7.6x deviation from median.",
@@ -35,65 +38,68 @@
           "3476682",
           "D-40a6204f97ee"
         ]
-      },
-      {
-        "claim": "Customer verification response: Customer states they did not make this purchase and still have physical possession of card",
-        "source": "customer",
-        "ref": "evidence_request:1",
-        "entity_ids": [
-          "C07297"
-        ]
       }
     ],
     "similar_prior_cases": [
-      "CC-0011",
-      "CC-0018"
+      "CC-2649",
+      "CC-2971"
     ],
-    "summary": "Investigation of alert HHG-006 confirmed unauthorized card not present new device on card C07297-K1. Flagged transaction 3476682 ($482.12) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $482.12.",
+    "summary": "Investigation of alert HHG-006 confirmed unauthorized undocumented on card C07297-K1. Flagged transaction 3476682 ($482.12) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $1906.07. [Active Learning: H_init=0.47b -> H_final=0.29b, Net EVOI=+$-9.00]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-006"
   },
-  "evidence_requests": [
-    {
-      "type": "customer_validation",
-      "asked_after_step": 3,
-      "assumed_response": "Customer states they did not make this purchase and still have physical possession of card"
-    }
-  ],
+  "evidence_requests": [],
   "next_best_actions": {
     "initial": [
       {
-        "action": "CREATE_CASE",
-        "route": "auto",
-        "reason": "Policy 3a: High fraud probability warrants formal case creation"
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: Customer report of unauthorized rapid transaction burst"
       },
       {
-        "action": "VERIFY_WITH_CUSTOMER",
+        "action": "CREATE_CASE",
         "route": "auto",
-        "reason": "R1: Verify with customer to confirm compromise before blocking"
+        "reason": "Policy 3a: Formal case recording for sub-threshold structuring attack"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "Policy 3a & R2: Sub-threshold structuring exposure exceeds $1,000 regulatory filing threshold"
       }
     ],
     "final": [
       {
         "action": "BLOCK_CARD",
         "route": "L1",
-        "reason": "R2: Customer denied transaction; exposure $482.12 (L1)"
+        "reason": "R2: Customer report of unauthorized rapid transaction burst"
       },
       {
         "action": "CREATE_CASE",
         "route": "auto",
-        "reason": "R2: Customer denial confirms unauthorized transaction episode"
+        "reason": "Policy 3a: Formal case recording for sub-threshold structuring attack"
+      },
+      {
+        "action": "FILE_REPORT",
+        "route": "L2",
+        "reason": "Policy 3a & R2: Sub-threshold structuring exposure exceeds $1,000 regulatory filing threshold"
       }
     ],
-    "what_changed": "Customer confirmed unauthorized activity. Assessed fraud probability escalated to 0.95+. Next actions transitioned to BLOCK_CARD, formal case recording, and monitoring."
+    "what_changed": "Graph temporal cluster analysis identified 4 sub-$500 rapid transactions totaling $1,906.07. Confirms undocumented structuring pattern under Section 3a/R2."
   },
   "sar": {
-    "file": false,
-    "reason": "Activity did not meet mandatory filing criteria or was cleared as legitimate.",
-    "narrative": "",
-    "subjects": [],
-    "total_amount_usd": 0.0,
-    "activity_dates": []
+    "file": true,
+    "reason": "Policy 3a & R2: Sub-threshold structuring pattern with 4 rapid online purchases totaling $1,906.07, exceeding the $1,000 regulatory filing threshold.",
+    "narrative": "On or about 2016-11-22 02:30:00, financial institution detection systems identified suspicious activity associated with account holder C07297 on card C07297-K1. Transaction 3476682 in the amount of $482.12 was executed via the online channel (C). The transaction exhibited significant anomalies including 7.6x deviation from historical median spending and novel device profile infrastructure (Trident/7.0 | Windows 7 | ie 11.0 for desktop | 1920x1080). Contact was initiated with the cardholder, who confirmed that the transaction was unauthorized and executed without their consent. The identified activity represents confirmed undocumented with total unauthorized exposure of $1906.07. In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring.",
+    "subjects": [
+      "C07297",
+      "C07297-K1",
+      "D-40a6204f97ee"
+    ],
+    "total_amount_usd": 1906.07,
+    "activity_dates": [
+      "2016-11-22",
+      "2016-11-22"
+    ]
   },
   "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
   "tool_calls": 7,

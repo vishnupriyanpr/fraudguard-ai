@@ -38,7 +38,7 @@
       "CC-4160",
       "CC-0001"
     ],
-    "summary": "Investigation of alert HHG-002 confirmed unauthorized card not present fraud on card C11891-K1. Flagged transaction 3478782 ($292.36) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $292.36.",
+    "summary": "Investigation of alert HHG-002 confirmed unauthorized card not present fraud on card C11891-K1. Flagged transaction 3478782 ($292.36) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $292.36. [Active Learning: H_init=0.81b -> H_final=0.29b, Net EVOI=+$0.00]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-002"
   },

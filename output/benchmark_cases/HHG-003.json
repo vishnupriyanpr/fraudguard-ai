@@ -1,15 +1,13 @@
 {
   "case_id": "HHG-003",
   "case": {
-    "status": "closed_fraud",
-    "verdict": "fraud",
-    "fraud_probability": 0.95,
-    "pattern": "card_not_present_fraud",
+    "status": "escalated",
+    "verdict": "uncertain",
+    "fraud_probability": 0.5,
+    "pattern": "none",
     "pattern_description": "",
-    "affected_txn_ids": [
-      "3530164"
-    ],
-    "first_suspicious_txn_id": "3530164",
+    "affected_txn_ids": [],
+    "first_suspicious_txn_id": "",
     "connected_card_ids": [
       "C08623-K2"
     ],
@@ -33,57 +31,53 @@
           "3530164",
           "330.0"
         ]
-      },
-      {
-        "claim": "Customer verification response: Customer states they did not make this purchase and still have physical possession of card",
-        "source": "customer",
-        "ref": "evidence_request:1",
-        "entity_ids": [
-          "C08623"
-        ]
       }
     ],
     "similar_prior_cases": [
       "CC-1589",
       "CC-2817"
     ],
-    "summary": "Investigation of alert HHG-003 confirmed unauthorized card not present fraud on card C08623-K2. Flagged transaction 3530164 ($49.00) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $49.00.",
+    "summary": "Investigation of alert HHG-003 remains uncertain. Evidence shows conflicting signals on transaction 3530164 with financial exposure $49.00. Under Policy Rule R8, case is escalated to a fraud analyst. [Active Learning: H_init=1.00b -> H_final=1.00b, Net EVOI=+$9.50]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-003"
   },
-  "evidence_requests": [
-    {
-      "type": "customer_validation",
-      "asked_after_step": 3,
-      "assumed_response": "Customer states they did not make this purchase and still have physical possession of card"
-    }
-  ],
+  "evidence_requests": [],
   "next_best_actions": {
     "initial": [
       {
-        "action": "CREATE_CASE",
-        "route": "auto",
-        "reason": "Policy 3a: High fraud probability warrants formal case creation"
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R1/R2: Uncorroborated customer report on in-person transaction in regular spending region requires protective card block"
       },
       {
-        "action": "VERIFY_WITH_CUSTOMER",
+        "action": "CREATE_CASE",
         "route": "auto",
-        "reason": "R1: Verify with customer to confirm compromise before blocking"
+        "reason": "Policy 3a: Formal case creation for disputed transaction"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R1: In-person transaction dispute with no secondary fraud signals requires human analyst investigation"
       }
     ],
     "final": [
       {
         "action": "BLOCK_CARD",
         "route": "L1",
-        "reason": "R2: Customer denied transaction; exposure $49.00 (L1)"
+        "reason": "R1/R2: Uncorroborated customer report on in-person transaction in regular spending region requires protective card block"
       },
       {
         "action": "CREATE_CASE",
         "route": "auto",
-        "reason": "R2: Customer denial confirms unauthorized transaction episode"
+        "reason": "Policy 3a: Formal case creation for disputed transaction"
+      },
+      {
+        "action": "ESCALATE_TO_ANALYST",
+        "route": "auto",
+        "reason": "R1: In-person transaction dispute with no secondary fraud signals requires human analyst investigation"
       }
     ],
-    "what_changed": "Customer confirmed unauthorized activity. Assessed fraud probability escalated to 0.95+. Next actions transitioned to BLOCK_CARD, formal case recording, and monitoring."
+    "what_changed": "Investigation of in-person dispute shows uncorroborated single signal with normal geographic baseline. Under Rule R1 & Section 6, requires human analyst escalation."
   },
   "sar": {
     "file": false,
@@ -93,7 +87,7 @@
     "total_amount_usd": 0.0,
     "activity_dates": []
   },
-  "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
+  "stop_reason": "Ambiguous evidence requires senior analyst review.",
   "tool_calls": 7,
   "tokens": 4350,
   "latency_s": 0.01

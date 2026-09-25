@@ -61,7 +61,7 @@
       "CC-1383",
       "CC-0137"
     ],
-    "summary": "Investigation of alert HHG-017 confirmed unauthorized card testing on card C04570-K1. Flagged transaction 3450629 ($100.09) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $300.14.",
+    "summary": "Investigation of alert HHG-017 confirmed unauthorized card testing on card C04570-K1. Flagged transaction 3450629 ($100.09) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $300.14. [Active Learning: H_init=0.72b -> H_final=0.29b, Net EVOI=+$-3.00]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-017"
   },

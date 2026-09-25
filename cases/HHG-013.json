@@ -1,20 +1,22 @@
 {
   "case_id": "HHG-013",
   "case": {
-    "status": "closed_legitimate",
-    "verdict": "legitimate",
-    "fraud_probability": 0.05,
-    "pattern": "none",
+    "status": "closed_fraud",
+    "verdict": "fraud",
+    "fraud_probability": 0.95,
+    "pattern": "card_not_present_new_device",
     "pattern_description": "",
-    "affected_txn_ids": [],
-    "first_suspicious_txn_id": "",
+    "affected_txn_ids": [
+      "3526826"
+    ],
+    "first_suspicious_txn_id": "3526826",
     "connected_card_ids": [
       "C07671-K2"
     ],
     "connected_device_profiles": [
       "Windows | chrome 66.0"
     ],
-    "exposure_usd": 0.0,
+    "exposure_usd": 35.66,
     "evidence": [
       {
         "claim": "Customer baseline consists of 1441 prior transactions with median amount $59.08. Flagged transaction amount $35.66 represents a 0.6x deviation from median.",
@@ -35,7 +37,7 @@
         ]
       },
       {
-        "claim": "Customer verification response: Customer confirms they authorized this purchase and remain in physical possession of card",
+        "claim": "Customer verification response: Customer states they did not make this purchase and still have physical possession of card",
         "source": "customer",
         "ref": "evidence_request:1",
         "entity_ids": [
@@ -47,7 +49,7 @@
       "CC-1475",
       "CC-3216"
     ],
-    "summary": "Investigation of alert HHG-013 concluded that transaction 3526826 ($35.66) is consistent with customer C07671's normal baseline. Customer verification confirmed authorized activity. The case is resolved and closed as legitimate under Policy Rule R3 with no disruption to the cardholder.",
+    "summary": "Investigation of alert HHG-013 confirmed unauthorized card not present new device on card C07671-K2. Flagged transaction 3526826 ($35.66) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $35.66. [Active Learning: H_init=0.97b -> H_final=0.29b, Net EVOI=+$6.40]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-013"
   },
@@ -55,7 +57,7 @@
     {
       "type": "customer_validation",
       "asked_after_step": 3,
-      "assumed_response": "Customer confirms they authorized this purchase and remain in physical possession of card"
+      "assumed_response": "Customer states they did not make this purchase and still have physical possession of card"
     }
   ],
   "next_best_actions": {
@@ -73,12 +75,17 @@
     ],
     "final": [
       {
-        "action": "CLOSE_NO_FRAUD",
+        "action": "BLOCK_CARD",
+        "route": "L1",
+        "reason": "R2: Customer denied transaction; exposure $35.66 (L1)"
+      },
+      {
+        "action": "CREATE_CASE",
         "route": "auto",
-        "reason": "R3: Customer confirmed the transaction was authorized"
+        "reason": "R2: Customer denial confirms unauthorized transaction episode"
       }
     ],
-    "what_changed": "Customer confirmed authorizing the transaction. Assessed fraud probability resolved to legitimate (<=0.05). Pending verification resolved to CLOSE_NO_FRAUD per Rule R3."
+    "what_changed": "Customer confirmed unauthorized activity. Assessed fraud probability escalated to 0.95+. Next actions transitioned to BLOCK_CARD, formal case recording, and monitoring."
   },
   "sar": {
     "file": false,
@@ -88,7 +95,7 @@
     "total_amount_usd": 0.0,
     "activity_dates": []
   },
-  "stop_reason": "Customer confirmation and consistent graph baseline settled the investigation as legitimate.",
+  "stop_reason": "Customer denial and graph anomaly evidence settled fraud verdict; preventative blocks recommended.",
   "tool_calls": 7,
   "tokens": 4350,
   "latency_s": 0.01

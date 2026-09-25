@@ -4,7 +4,7 @@
     "status": "closed_fraud",
     "verdict": "fraud",
     "fraud_probability": 0.95,
-    "pattern": "card_not_present_fraud",
+    "pattern": "card_not_present_new_device",
     "pattern_description": "",
     "affected_txn_ids": [
       "3558054"
@@ -49,7 +49,7 @@
       "CC-0056",
       "CC-0467"
     ],
-    "summary": "Investigation of alert HHG-008 confirmed unauthorized card not present fraud on card C13171-K2. Flagged transaction 3558054 ($55.68) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $55.68.",
+    "summary": "Investigation of alert HHG-008 confirmed unauthorized card not present new device on card C13171-K2. Flagged transaction 3558054 ($55.68) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $55.68. [Active Learning: H_init=0.88b -> H_final=0.29b, Net EVOI=+$3.00]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-008"
   },

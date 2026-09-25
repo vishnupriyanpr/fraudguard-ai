@@ -49,7 +49,7 @@
       "CC-0873",
       "CC-0011"
     ],
-    "summary": "Investigation of alert HHG-010 confirmed unauthorized card not present new device on card C10434-K1. Flagged transaction 3506725 ($1000.03) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $1000.03.",
+    "summary": "Investigation of alert HHG-010 confirmed unauthorized card not present new device on card C10434-K1. Flagged transaction 3506725 ($1000.03) deviated from baseline, and cardholder confirmed lack of authorization. Under Policy Rule R2, the card was recommended for block (route: L1) with total financial exposure of $1000.03. [Active Learning: H_init=0.81b -> H_final=0.29b, Net EVOI=+$0.00]",
     "written_to_graph": true,
     "graph_case_id": "CASE-TG-HHG-010"
   },
@@ -94,7 +94,7 @@
   },
   "sar": {
     "file": true,
-    "reason": "Policy 3a: Confirmed fraud with exposure $1000.03 exceeding $1,000 or coordinated ring",
+    "reason": "Policy 3a & R2: Confirmed unauthorized activity with total exposure of $1000.03, exceeding the $1,000 regulatory filing threshold",
     "narrative": "On or about 2016-12-02 18:18:27, financial institution detection systems identified suspicious activity associated with account holder C10434 on card C10434-K1. Transaction 3506725 in the amount of $1000.03 was executed via the online channel (R). The transaction exhibited significant anomalies including 13.2x deviation from historical median spending and novel device profile infrastructure (Windows | Windows 10 | edge 16.0 | 1366x768). Contact was initiated with the cardholder, who confirmed that the transaction was unauthorized and executed without their consent. The identified activity represents confirmed card not present new device with total unauthorized exposure of $1000.03. In accordance with federal Bank Secrecy Act and Suspicious Activity Reporting guidelines, the compromised card has been placed under permanent block and scheduled for reissue, and all connected network entities are subject to ongoing monitoring.",
     "subjects": [
       "C10434",
