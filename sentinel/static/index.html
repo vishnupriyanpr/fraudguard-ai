@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHRONOS // Autonomous Deadline Sentinel & Chatbot Agent</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="brand-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </div>
+      <div class="brand-title">CHRONOS // SENTINEL</div>
+      <div class="brand-pill">
+        <span class="status-dot"></span>
+        <span>DAEMON ACTIVE</span>
+      </div>
+      <div id="live-clock" class="brand-pill">--:--:--</div>
+    </div>
+
+    <div id="executive-ticker" class="executive-ticker">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+      </svg>
+      <span id="ticker-text">Scanning active deadlines...</span>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn btn-subtle" onclick="openDrawer('channels')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+        </svg>
+        <span>Connect WhatsApp / Social</span>
+      </button>
+
+      <button class="btn btn-subtle" onclick="openDrawer('matrix')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        <span>Timeline Matrix</span>
+      </button>
+
+      <button class="btn btn-subtle" onclick="openDrawer('mcps')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        <span>MCP Suite</span>
+      </button>
+
+      <button class="btn btn-primary" onclick="resetChat()">
+        New Session
+      </button>
+    </div>
+  </header>
+
+  <!-- Central Chatbot Stream -->
+  <main class="chat-container">
+    <div id="chat-history" class="chat-history">
+      <!-- Conversation threads injected here -->
+    </div>
+
+    <!-- Fixed Bottom Chat Bar -->
+    <div class="chat-bottom-bar">
+      <!-- Progressive Suggestion Chips -->
+      <div class="suggestion-chips">
+        <button class="suggestion-chip" onclick="quickSend('I entered https://devpost.com/software/frontier-ai-challenge, deadline is this Sunday')">
+          + Ingest Hackathon Link
+        </button>
+        <button class="suggestion-chip" onclick="quickSend('What is my immediate next deadline and milestone?')">
+          What is my next deadline?
+        </button>
+        <button class="suggestion-chip" onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')">
+          Track 1: AI Agent Focus
+        </button>
+        <button class="suggestion-chip" onclick="quickSend('How do I connect WhatsApp for alerts?')">
+          Connect WhatsApp Alerts
+        </button>
+      </div>
+
+      <!-- Input Form -->
+      <form id="chat-form" onsubmit="handleSend(event)" class="chat-input-wrapper">
+        <input 
+          type="text" 
+          id="chat-input" 
+          class="chat-input" 
+          placeholder="Ask CHRONOS, paste an event link, or specify your task focus..." 
+          autocomplete="off" 
+          required
+        />
+        <button type="submit" id="send-btn" class="btn btn-primary">
+          <span>Send</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Slide-Over Drawer: Multi-Platform Channels (WhatsApp, Telegram, Discord, Slack) -->
+  <div id="drawer-channels" class="drawer-backdrop" onclick="closeDrawerOnBackdrop(event, 'channels')">
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <div class="drawer-title">CONNECT NOTIFICATION CHANNELS</div>
+        <button class="btn btn-subtle btn-sm" onclick="closeDrawer('channels')">&times;</button>
+      </div>
+
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+        Connect your preferred messaging platforms to receive short, executive briefings ahead of critical deadlines without noise.
+      </p>
+
+      <!-- WhatsApp Box -->
+      <div class="channel-box">
+        <div class="channel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          <span>WhatsApp Alerts</span>
+        </div>
+        <div class="channel-desc">Receive concise milestone reminders directly on WhatsApp.</div>
+        <div class="form-group">
+          <label class="form-label">Phone Number (with Country Code)</label>
+          <input type="text" id="wa-phone" class="form-input" placeholder="+1234567890 or +919876543210">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Webhook Gateway URL (Optional)</label>
+          <input type="text" id="wa-webhook" class="form-input" placeholder="https://your-whatsapp-gateway.com/webhook">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveAndTestChannel('whatsapp', 'wa-phone', 'wa-webhook')">
+          Connect WhatsApp & Test Ping
+        </button>
+      </div>
+
+      <!-- Telegram Box -->
+      <div class="channel-box">
+        <div class="channel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+          <span>Telegram Alerts</span>
+        </div>
+        <div class="channel-desc">Dispatch briefings to your private Telegram bot chat.</div>
+        <div class="form-group">
+          <label class="form-label">Bot Token</label>
+          <input type="text" id="tg-token" class="form-input" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Chat ID</label>
+          <input type="text" id="tg-chat" class="form-input" placeholder="@your_channel or 987654321">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveAndTestChannel('telegram', 'tg-chat', null, 'tg-token')">
+          Connect Telegram & Test Ping
+        </button>
+      </div>
+
+      <!-- Discord Box -->
+      <div class="channel-box">
+        <div class="channel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+          <span>Discord Webhook</span>
+        </div>
+        <div class="channel-desc">Forward deadline checkpoints to a private Discord channel.</div>
+        <div class="form-group">
+          <label class="form-label">Discord Webhook URL</label>
+          <input type="text" id="dc-webhook" class="form-input" placeholder="https://discord.com/api/webhooks/...">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveAndTestChannel('discord', 'Discord Channel', 'dc-webhook')">
+          Connect Discord & Test Ping
+        </button>
+      </div>
+
+      <!-- Slack Box -->
+      <div class="channel-box">
+        <div class="channel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+          </svg>
+          <span>Slack Webhook</span>
+        </div>
+        <div class="channel-desc">Dispatch to your project's Slack alert channel.</div>
+        <div class="form-group">
+          <label class="form-label">Slack Webhook URL</label>
+          <input type="text" id="sl-webhook" class="form-input" placeholder="https://hooks.slack.com/services/...">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveAndTestChannel('slack', 'Slack Channel', 'sl-webhook')">
+          Connect Slack & Test Ping
+        </button>
+      </div>
+
+      <!-- Active Channels List -->
+      <div style="margin-top: 20px;">
+        <div class="form-label">Active Connected Channels</div>
+        <div id="active-channels-list" style="margin-top: 8px;">
+          <div style="font-size: 12px; color: var(--text-muted);">No external channels linked yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide-Over Drawer: Timeline & Calendar Matrix -->
+  <div id="drawer-matrix" class="drawer-backdrop" onclick="closeDrawerOnBackdrop(event, 'matrix')">
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <div class="drawer-title">CALENDAR & TIMELINE MATRIX</div>
+        <button class="btn btn-subtle btn-sm" onclick="closeDrawer('matrix')">&times;</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+        Chronological schedule of events and phased milestones scheduled backwards from deadlines.
+      </p>
+      <div id="drawer-calendar-list">
+        <div style="font-size: 13px; color: var(--text-muted);">Loading timeline...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide-Over Drawer: MCP Suite -->
+  <div id="drawer-mcps" class="drawer-backdrop" onclick="closeDrawerOnBackdrop(event, 'mcps')">
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <div class="drawer-title">ACTIVE MCP TOOLS SUITE</div>
+        <button class="btn btn-subtle btn-sm" onclick="closeDrawer('mcps')">&times;</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+        Auto-resolved Model Context Protocol servers configured for your current tasks.
+      </p>
+      <button class="btn btn-primary btn-sm" style="width: 100%; margin-bottom: 20px;" onclick="exportMcpConfig()">
+        Export `mcp_servers.json`
+      </button>
+      <div id="drawer-mcps-list">
+        <div style="font-size: 13px; color: var(--text-muted);">No active MCP configurations.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
