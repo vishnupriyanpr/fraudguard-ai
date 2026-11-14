@@ -2,23 +2,88 @@
 CHRONOS // AI Intelligence & Task Formulation Engine
 Synthesizes scraped research, asks targeted scoping questions, decomposes milestones backwards
 from the deadline, and generates concise, non-nosy executive briefings.
+Supports both Local Ollama models and Groq High-Speed Cloud LPUs.
 """
 
 import os
 import json
 import re
 from datetime import datetime, timedelta
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Generator
+from dotenv import load_dotenv
 
-def call_groq_llm(system_prompt: str, user_prompt: str) -> str:
+# Load env variables (e.g. GROQ_API_KEY)
+load_dotenv()
+
+# Active model and provider state
+_active_model: str = "qwen2.5:3b"
+_active_provider: str = "ollama"
+
+def get_active_model_info() -> Dict[str, str]:
+    return {
+        "model": _active_model,
+        "provider": _active_provider
+    }
+
+def get_active_model() -> str:
+    return _active_model
+
+def get_active_provider() -> str:
+    return _active_provider
+
+def set_active_model(model: str, provider: Optional[str] = None) -> Dict[str, str]:
+    global _active_model, _active_provider
+    _active_model = model.strip()
+    if provider:
+        _active_provider = provider.strip().lower()
+    else:
+        # Auto-detect provider by name pattern
+        if any(_active_model.startswith(p) for p in ["openai/", "meta-llama/", "qwen/qwen3.8", "groq/"]) or "gpt-oss" in _active_model:
+            _active_provider = "groq"
+        else:
+            _active_provider = "ollama"
+    return {"model": _active_model, "provider": _active_provider}
+
+def call_ollama(system_prompt: str, user_prompt: str, model: Optional[str] = None) -> str:
     """
-    Attempts to call Groq API if GROQ_API_KEY is configured.
-    Falls back gracefully if not available.
+    Calls the local Ollama /api/chat endpoint.
+    """
+    target_model = model or _active_model
+    try:
+        import requests
+        payload = {
+            "model": target_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "stream": False
+        }
+        resp = requests.post(
+            "http://localhost:11434/api/chat",
+            json=payload,
+            timeout=120
+        )
+        if resp.status_code == 200:
+            data = resp.json()
+            return data.get("message", {}).get("content", "")
+    except Exception:
+        pass
+    return ""
+
+def call_groq_llm(system_prompt: str, user_prompt: str, model: Optional[str] = None) -> str:
+    """
+    Calls Groq LPU API if GROQ_API_KEY is configured.
     """
     api_key = os.getenv("GROQ_API_KEY")
     if not api_key or "your_" in api_key.lower():
         return ""
     
+    target_model = model or (_active_model if _active_provider == "groq" else "openai/gpt-oss-20b")
+    # Clean prefix if needed
+    if target_model == "llama-3.3-70b-versatile":
+        target_model = "openai/gpt-oss-20b"
+        
     try:
         import requests
         url = "https://api.groq.com/openai/v1/chat/completions"
@@ -27,7 +92,7 @@ def call_groq_llm(system_prompt: str, user_prompt: str) -> str:
             "Content-Type": "application/json"
         }
         payload = {
-            "model": "llama-3.3-70b-versatile",
+            "model": target_model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -35,12 +100,116 @@ def call_groq_llm(system_prompt: str, user_prompt: str) -> str:
             "temperature": 0.2,
             "max_tokens": 1500
         }
-        resp = requests.post(url, headers=headers, json=payload, timeout=8)
+        resp = requests.post(url, headers=headers, json=payload, timeout=12)
         if resp.status_code == 200:
             return resp.json()["choices"][0]["message"]["content"]
     except Exception:
         pass
     return ""
+
+def call_llm(system_prompt: str, user_prompt: str) -> str:
+    """
+    Unified LLM caller respecting user's active choice (Ollama or Groq),
+    with mutual fallback.
+    """
+    if _active_provider == "groq":
+        res = call_groq_llm(system_prompt, user_prompt)
+        if res:
+            return res
+        return call_ollama(system_prompt, user_prompt)
+    else:
+        res = call_ollama(system_prompt, user_prompt)
+        if res:
+            return res
+        return call_groq_llm(system_prompt, user_prompt)
+
+def stream_llm(system_prompt: str, user_prompt: str) -> Generator[Dict[str, Any], None, None]:
+    """
+    Generator streaming tokens via active provider (Ollama or Groq).
+    Yields dicts with 'token' and optionally 'reasoning'.
+    """
+    import requests
+
+    if _active_provider == "groq":
+        api_key = os.getenv("GROQ_API_KEY")
+        target_model = _active_model if _active_model.startswith("openai/") or _active_model.startswith("qwen/") else "openai/gpt-oss-20b"
+        if api_key:
+            try:
+                headers = {
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": target_model,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    "stream": True,
+                    "temperature": 0.3
+                }
+                with requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers=headers,
+                    json=payload,
+                    stream=True,
+                    timeout=30
+                ) as resp:
+                    for line in resp.iter_lines():
+                        if not line:
+                            continue
+                        line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                        if line_str.startswith("data: "):
+                            raw = line_str[6:].strip()
+                            if raw == "[DONE]":
+                                break
+                            try:
+                                chunk = json.loads(raw)
+                                delta = chunk.get("choices", [{}])[0].get("delta", {})
+                                token = delta.get("content")
+                                reasoning = delta.get("reasoning")
+                                if reasoning:
+                                    yield {"reasoning": reasoning}
+                                if token:
+                                    yield {"token": token}
+                            except Exception:
+                                pass
+                return
+            except Exception:
+                pass
+
+    # Ollama Streaming fallback / default
+    target_model = _active_model if not _active_model.startswith("openai/") else "qwen3.5:9b"
+    try:
+        payload = {
+            "model": target_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "stream": True
+        }
+        with requests.post(
+            "http://localhost:11434/api/chat",
+            json=payload,
+            stream=True,
+            timeout=120
+        ) as resp:
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                line_str = line.decode("utf-8") if isinstance(line, bytes) else line
+                try:
+                    chunk = json.loads(line_str)
+                    token = chunk.get("message", {}).get("content", "")
+                    if token:
+                        yield {"token": token}
+                    if chunk.get("done"):
+                        break
+                except Exception:
+                    pass
+    except Exception as exc:
+        yield {"token": f"[Local inference notice: {str(exc)}]"}
 
 def synthesize_research(event_title: str, category: str, deadline: str, links: List[Dict[str, Any]], user_notes: str = "") -> Dict[str, Any]:
     """
@@ -51,14 +220,17 @@ def synthesize_research(event_title: str, category: str, deadline: str, links: L
     if user_notes:
         combined_text += f"\n\nUser Notes: {user_notes}"
         
-    # Attempt LLM synthesis
-    llm_system = "You are CHRONOS, an expert autonomous hackathon architect. Analyze this event. Output pure JSON with keys: summary (string), key_deadlines (list of strings), requirements (list of strings), tracks_or_prizes (list of strings), recommended_stack (list of strings), clarification_questions (list of 3 precise questions asking the user what specific track, stack, and deliverables they want to build)."
+    llm_system = (
+        "You are CHRONOS, an expert autonomous hackathon architect. Analyze this event. "
+        "Output pure JSON with keys: summary (string), key_deadlines (list of strings), "
+        "requirements (list of strings), tracks_or_prizes (list of strings), recommended_stack (list of strings), "
+        "clarification_questions (list of 3 precise questions asking the user what specific track, stack, and deliverables they want to build)."
+    )
     llm_user = f"Event Title: {event_title}\nCategory: {category}\nTarget Deadline: {deadline}\n\nScraped Data:\n{combined_text[:4000]}"
     
-    llm_response = call_groq_llm(llm_system, llm_user)
+    llm_response = call_llm(llm_system, llm_user)
     if llm_response:
         try:
-            # Clean json fences
             clean_json = re.sub(r'```(?:json)?', '', llm_response).strip()
             data = json.loads(clean_json)
             if all(k in data for k in ["summary", "clarification_questions"]):
@@ -66,10 +238,9 @@ def synthesize_research(event_title: str, category: str, deadline: str, links: L
         except Exception:
             pass
             
-    # Deterministic Heuristic Synthesis (Zero-Downtime Guarantee)
+    # Deterministic Heuristic Synthesis
     summary = f"Autonomous analysis for '{event_title}'. Portal links parsed: {len(links)} external references ingested. Scraped materials highlight key submission checkpoints and functional criteria."
     
-    # Extract deadlines found
     all_dates = []
     for l in links:
         all_dates.extend(l.get("dates_found", []))
@@ -124,7 +295,6 @@ def generate_phased_tasks(event_id: int, event_title: str, deadline_str: str,
         
     total_duration = max((deadline_dt - now).total_seconds(), 3600)
     
-    # Backwards calculation intervals
     d_setup = (now + timedelta(seconds=total_duration * 0.15)).strftime("%Y-%m-%d %H:%M")
     d_core = (now + timedelta(seconds=total_duration * 0.50)).strftime("%Y-%m-%d %H:%M")
     d_polish = (now + timedelta(seconds=total_duration * 0.80)).strftime("%Y-%m-%d %H:%M")
@@ -174,10 +344,6 @@ def generate_phased_tasks(event_id: int, event_title: str, deadline_str: str,
     return tasks
 
 def generate_non_nosy_briefing(event: Dict[str, Any], pending_tasks: List[Dict[str, Any]]) -> Dict[str, str]:
-    """
-    Produces a crisp, 1-2 sentence executive briefing that tells the user
-    what to do next without being annoying or long-winded.
-    """
     now = datetime.now()
     deadline_str = event.get("deadline", "")
     try:
@@ -219,11 +385,6 @@ def generate_non_nosy_briefing(event: Dict[str, Any], pending_tasks: List[Dict[s
     }
 
 def process_chat_turn(user_text: str) -> Dict[str, Any]:
-    """
-    Conversational agent handler with progressive disclosure.
-    Guides the user through event intake, asks scoping questions,
-    and progressively reveals tasks, MCP configurations, and calendar slots.
-    """
     from sentinel.db import (
         get_events, create_event, add_event_link, update_event_link,
         save_event_research, get_event_research, create_task, get_tasks,
@@ -244,24 +405,20 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
         scrape_res = scrape_event_url(first_url)
         page_title = scrape_res.get("title") or "Hackathon Event"
         
-        # Clean title if long
         event_title = page_title.split("|")[0].split(" - ")[0].strip()[:60]
         if len(event_title) < 5 or "http" in event_title.lower():
             event_title = "Hackathon Submission Milestone"
 
-        # Determine deadline from text or scraped dates
         dates_found = scrape_res.get("dates_found", [])
         now = datetime.now()
         target_deadline = (now + timedelta(days=2, hours=12)).isoformat()
         
-        # Look for explicit deadline words in user text
         if "sunday" in user_text_clean.lower():
             days_ahead = (6 - now.weekday()) % 7 or 7
             target_deadline = (now + timedelta(days=days_ahead, hours=18)).isoformat()
         elif "tomorrow" in user_text_clean.lower():
             target_deadline = (now + timedelta(days=1, hours=18)).isoformat()
 
-        # Create event
         event_id = create_event(
             title=event_title,
             category="hackathon",
@@ -297,8 +454,7 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
             clarification_questions=research["clarification_questions"]
         )
 
-        # Conversational Progressive Response
-        questions_formatted = "\n".join([f"- {q}" for q in research["clarification_questions"][:3]])
+        questions_formatted = "\n".join([f"{q}" for q in research["clarification_questions"][:3]])
         formatted_date = target_deadline[:16].replace('T', ' ')
         content = (
             f"I have digested the links for **{event_title}**.\n\n"
@@ -331,7 +487,6 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
         event_id = recent_event["id"]
         research = get_event_research(event_id) or {}
         
-        # Generate Phased Tasks
         tasks = generate_phased_tasks(
             event_id=event_id,
             event_title=recent_event["title"],
@@ -355,7 +510,6 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
             t_copy["id"] = tid
             created_tasks.append(t_copy)
 
-        # Auto-resolve MCPs
         rec_mcps = recommend_mcps_for_event(tasks, [], user_text_clean)
         for m in rec_mcps:
             save_mcp_config(
@@ -367,9 +521,9 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
             )
 
         content = (
-            f"Got it. I've tailored your roadmap for **{recent_event['title']}** based on your inputs:\n\n"
-            f"1. **Phased Milestones:** 4 chronological phases scheduled backwards from your deadline.\n"
-            f"2. **MCP Suite Configured:** Auto-selected {len(rec_mcps)} relevant MCP tools (e.g., {', '.join([m['name'] for m in rec_mcps[:3]])}).\n"
+            f"Understood. Phased milestone roadmap generated for **{recent_event['title']}**:\n\n"
+            f"1. **Phased Milestones:** 4 chronological phases backwards-scheduled from your deadline.\n"
+            f"2. **MCP Suite Configured:** Auto-selected {len(rec_mcps)} relevant MCP tools ({', '.join([m['name'] for m in rec_mcps[:3]])}).\n"
             f"3. **Deadline Guard:** Executive reminder daemon is monitoring your due dates."
         )
 
@@ -413,22 +567,32 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
         return {
             "role": "assistant",
             "content": (
-                "You can connect WhatsApp, Telegram, Discord, or Slack to receive short executive briefings on your phone.\n\n"
-                "Click the **'Connect Channels'** button in the header or provide your phone number/webhook URL to configure it."
+                "You can connect WhatsApp or Telegram to receive short executive briefings on your mobile device.\n\n"
+                "Switch to the **'Channels'** tab in the sidebar or provide your phone number/webhook URL to configure it."
             ),
             "card_type": "channel_connect_trigger",
             "metadata": {}
         }
 
-    # 5. Default General Assistance
-    return {
-        "role": "assistant",
-        "content": (
+    # 5. Default General Assistance - Call Active LLM for intelligent conversation!
+    llm_prompt = (
+        f"The user says: '{user_text_clean}'. Provide a helpful, intelligent, concise response "
+        "as CHRONOS, the autonomous deadline sentinel. If they mention a hackathon, project, or deadline, "
+        "encourage them to paste the URL or provide the date so you can crawl criteria, schedule milestones backwards, "
+        "and configure MCP tools."
+    )
+    llm_system = "You are CHRONOS, an expert autonomous deadline sentinel and hackathon architect. Be concise, direct, and authoritative. Avoid generic boilerplate."
+    response_text = call_llm(llm_system, llm_prompt)
+    if not response_text:
+        response_text = (
             "I'm CHRONOS, your local deadline sentinel and MCP orchestrator.\n\n"
             "Paste your hackathon or project link, or tell me about an upcoming event with its deadline. "
             "I'll digest the links, ask what you need, configure the relevant MCPs, and keep you ahead of your milestones."
-        ),
+        )
+
+    return {
+        "role": "assistant",
+        "content": response_text,
         "card_type": None,
         "metadata": {}
     }
-

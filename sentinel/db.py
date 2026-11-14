@@ -291,6 +291,39 @@ def update_task_status(task_id: int, status: str):
     conn.commit()
     conn.close()
 
+def update_task(task_id: int, title: str, description: str = '', phase: str = 'Phase 1: Setup',
+                due_date: str = '', priority: str = 'high', assigned_mcp: str = '') -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE tasks
+        SET title = ?, description = ?, phase = ?, due_date = ?, priority = ?, assigned_mcp = ?
+        WHERE id = ?
+    """, (title, description, phase, due_date, priority, assigned_mcp, task_id))
+    rows_affected = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows_affected > 0
+
+def get_task_stats(event_id: Optional[int] = None) -> Dict[str, Any]:
+    tasks = get_tasks(event_id)
+    total = len(tasks)
+    done = sum(1 for t in tasks if t.get("status") == "done")
+    in_progress = sum(1 for t in tasks if t.get("status") in ["in_progress", "active"])
+    pending = sum(1 for t in tasks if t.get("status") in ["pending", "todo"])
+    critical = sum(1 for t in tasks if t.get("priority") == "critical")
+    high = sum(1 for t in tasks if t.get("priority") == "high")
+    progress = int((done / total * 100)) if total > 0 else 0
+    return {
+        "total": total,
+        "done": done,
+        "in_progress": in_progress,
+        "pending": pending,
+        "critical": critical,
+        "high": high,
+        "progress": progress
+    }
+
 def delete_task(task_id: int):
     conn = get_connection()
     cursor = conn.cursor()

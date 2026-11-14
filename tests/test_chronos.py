@@ -79,3 +79,83 @@ def test_create_event_pipeline():
     # Clean up test event
     del_resp = client.delete(f"/api/events/{event_id}")
     assert del_resp.status_code == 200
+
+def test_task_management_and_stats():
+    # 1. Create task
+    create_resp = client.post("/api/tasks", json={
+        "event_id": 999,
+        "title": "Build Agent Tools Subpage",
+        "description": "Create high-fidelity task and tool management micro-frontends",
+        "phase": "Phase 2: Execution",
+        "priority": "critical",
+        "due_date": "2026-11-20 18:00",
+        "assigned_mcp": "sqlite"
+    })
+    assert create_resp.status_code == 200
+    task_id = create_resp.json()["task_id"]
+
+    # 2. Get task stats
+    stats_resp = client.get("/api/tasks/stats")
+    assert stats_resp.status_code == 200
+    stats = stats_resp.json()
+    assert "total" in stats
+    assert "critical" in stats
+    assert stats["total"] >= 1
+
+    # 3. Update task
+    update_resp = client.put(f"/api/tasks/{task_id}", json={
+        "title": "Build Agent Tools Subpage (Updated)",
+        "description": "Refined description with schema validation",
+        "phase": "Phase 2: Execution",
+        "priority": "high",
+        "due_date": "2026-11-21 12:00",
+        "assigned_mcp": "sqlite"
+    })
+    assert update_resp.status_code == 200
+    assert update_resp.json()["status"] == "updated"
+
+    # 4. Clean up
+    del_resp = client.delete(f"/api/tasks/{task_id}")
+    assert del_resp.status_code == 200
+
+def test_agent_tool_builder_and_diagnostics():
+    # 1. Check tools catalog
+    cat_resp = client.get("/api/tools/catalog")
+    assert cat_resp.status_code == 200
+    tools = cat_resp.json()
+    assert len(tools) >= 5
+    tool_ids = [t["id"] for t in tools]
+    assert "sqlite" in tool_ids
+    assert "filesystem" in tool_ids
+
+    # 2. Test sqlite tool execution
+    test_resp = client.post("/api/tools/sqlite/test", json={
+        "parameters": {"query": "SELECT count(*) FROM tasks"}
+    })
+    assert test_resp.status_code == 200
+    res = test_resp.json()
+    assert res["success"] is True
+    assert res["status"] == "HEALTHY"
+    assert "latency_ms" in res
+
+    # 3. Test filesystem tool execution
+    fs_resp = client.post("/api/tools/filesystem/test", json={
+        "parameters": {"directory": "sentinel"}
+    })
+    assert fs_resp.status_code == 200
+    assert fs_resp.json()["success"] is True
+
+def test_integrations_endpoints():
+    # 1. Check integrations status
+    status_resp = client.get("/api/integrations/status")
+    assert status_resp.status_code == 200
+    data = status_resp.json()
+    assert "google_calendar" in data
+    assert "whatsapp" in data
+
+    # 2. Test WhatsApp briefing dispatch
+    wa_resp = client.post("/api/integrations/whatsapp/send", json={
+        "recipient": "+15550199"
+    })
+    # If no events exist, status_code is 400 with detail or 200 if events exist
+    assert wa_resp.status_code in [200, 400]
