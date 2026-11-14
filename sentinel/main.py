@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from sentinel.db import (
-    init_db, create_event, get_events, get_event, delete_event,
+    init_db, create_event, get_events, get_event, update_event, delete_event,
     add_event_link, update_event_link, get_event_links,
     save_event_research, get_event_research,
     create_task, get_tasks, update_task_status, update_task, get_task_stats, delete_task,
@@ -41,6 +41,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="CHRONOS", description="Autonomous Event Deadline Sentinel & MCP Orchestrator", lifespan=lifespan)
 
+@app.middleware("http")
+async def add_no_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    # Prevent browser caching of any static or dynamic assets in development/production
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 if not os.path.exists(STATIC_DIR):
     os.makedirs(STATIC_DIR)
@@ -56,6 +65,11 @@ class EventCreateRequest(BaseModel):
     user_notes: Optional[str] = ""
     links: Optional[List[str]] = []
     user_focus: Optional[str] = ""
+
+class EventUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    deadline: Optional[str] = None
+    status: Optional[str] = None
 
 class TaskCreateRequest(BaseModel):
     event_id: int
@@ -96,7 +110,10 @@ class ResearchRefineRequest(BaseModel):
 def serve_home():
     index_file = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_file):
-        return FileResponse(index_file)
+        return FileResponse(
+            index_file,
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache"}
+        )
     return {"message": "CHRONOS API is active. Static UI initializing."}
 
 @app.get("/api/events")
@@ -241,6 +258,14 @@ def get_event_detail(event_id: int):
 def remove_event(event_id: int):
     delete_event(event_id)
     return {"status": "deleted", "event_id": event_id}
+
+@app.patch("/api/events/{event_id}")
+def patch_event(event_id: int, req: EventUpdateRequest):
+    event = get_event(event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    update_event(event_id, req.title, req.deadline, req.status)
+    return {"status": "updated", "event": get_event(event_id)}
 
 @app.post("/api/events/{event_id}/links")
 def add_and_scrape_link(event_id: int, req: LinkAddRequest):

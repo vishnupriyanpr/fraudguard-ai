@@ -294,7 +294,7 @@ function switchView(viewName) {
   const target = document.getElementById(`view-${viewName}`);
   if (target) target.classList.remove("hidden");
 
-  ['chat', 'matrix', 'tasks', 'mcps', 'channels'].forEach(v => {
+  ['chat', 'matrix', 'tasks', 'mcps', 'connectors', 'channels'].forEach(v => {
     const btn = document.getElementById(`nav-${v}`);
     if (btn) {
       if (v === viewName) {
@@ -311,6 +311,7 @@ function switchView(viewName) {
     loadAndRenderAgentTools();
     renderFullMcps();
   }
+  if (viewName === 'connectors') loadAndRenderConnectors();
   if (viewName === 'channels') renderFullChannels();
   if (viewName === 'chat') scrollToBottom();
 }
@@ -328,7 +329,9 @@ async function loadEventsAndRadar() {
     const events = await res.json();
     if (events.length > 0) {
       state.activeEvent = events[0];
-      state.targetDeadline = new Date(events[0].deadline.replace("Z", ""));
+      const rawDate = events[0].deadline || "";
+      const cleaned = rawDate.replace("Z", "").replace(" ", "T");
+      state.targetDeadline = cleaned ? new Date(cleaned) : null;
       const titleEl = document.getElementById("radar-event-title");
       if (titleEl) titleEl.textContent = events[0].title;
     }
@@ -433,7 +436,7 @@ function renderMessageHtml(msg) {
   }
 
   return `
-    <div class="flex items-start gap-4 max-w-3xl animate-fadeIn my-6">
+    <div class="flex items-start gap-4 max-w-3xl animate-fadeIn my-6 group">
       <div class="size-8 rounded-lg bg-[#111] flex items-center justify-center text-white shrink-0 mt-0.5">
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
@@ -445,6 +448,11 @@ function renderMessageHtml(msg) {
           ${formattedContent}
         </div>
         ${cardHtml}
+        <div class="flex items-center gap-2 pt-1 text-[11px] font-mono text-zinc-400">
+          <span class="font-extrabold text-zinc-600">CHRONOS SENTINEL</span>
+          <span>·</span>
+          <button onclick="copyMessageText(this)" class="hover:text-[#111] underline cursor-pointer font-bold transition-colors">Copy</button>
+        </div>
       </div>
     </div>
   `;
@@ -562,32 +570,58 @@ function renderBriefingCard(meta) {
 
 // ── Sending Messages (Instant Visible Feedback, Zero Refresh Needed) ──
 
+function copyMessageText(btn) {
+  const bubble = btn.closest(".group");
+  const contentEl = bubble ? bubble.querySelector(".message-content") : null;
+  const text = contentEl ? contentEl.innerText.trim() : "";
+  if (!text) return;
+
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = "Copied!";
+    showToast("Message copied to clipboard", "info", 1500);
+    setTimeout(() => { btn.textContent = orig; }, 1800);
+  });
+}
+
 async function handleSend(e) {
   if (e) e.preventDefault();
   if (state.isProcessing) return;
 
   const input = document.getElementById("chat-input");
-  const text = input.value.trim();
+  const text = input ? input.value.trim() : "";
   if (!text) return;
 
-  input.value = "";
+  if (input) input.value = "";
   state.isProcessing = true;
 
-  // Optimistic User Bubble
-  state.chatHistory.push({
+  const container = document.getElementById("chat-history");
+
+  // Remove hero command deck if it is currently displayed
+  const hero = document.getElementById("hero-command-deck");
+  if (hero) hero.remove();
+
+  // Optimistic User Bubble - Direct DOM append
+  const userMsg = {
     role: "user",
     content: text,
     card_type: null,
     metadata: {}
-  });
-  renderChat();
+  };
+  state.chatHistory.push(userMsg);
+
+  const userWrap = document.createElement("div");
+  userWrap.innerHTML = renderMessageHtml(userMsg);
+  if (container) {
+    container.appendChild(userWrap.firstElementChild);
+    scrollToBottom();
+  }
 
   // Sidebar Thinking Animation
   const startTime = Date.now();
   updateModelActivity('thinking', `Reasoning with ${state.activeModel}...`);
 
-  // Insert In-Chat Thinking Indicator
-  const container = document.getElementById("chat-history");
+  // Direct DOM Insert for In-Chat Thinking Indicator
   const thinkingRow = document.createElement("div");
   thinkingRow.id = "thinking-bubble";
   thinkingRow.className = "flex items-start gap-4 max-w-3xl animate-fadeIn my-6";
@@ -609,8 +643,10 @@ async function handleSend(e) {
       </div>
     </div>
   `;
-  container.appendChild(thinkingRow);
-  scrollToBottom();
+  if (container) {
+    container.appendChild(thinkingRow);
+    scrollToBottom();
+  }
 
   // Primary Reliable Chat Request
   try {
@@ -631,9 +667,16 @@ async function handleSend(e) {
     const tb = document.getElementById("thinking-bubble");
     if (tb) tb.remove();
 
-    // Push assistant reply into state and re-render immediately
+    // Push assistant reply into state
     state.chatHistory.push(data);
-    renderChat();
+
+    // Direct DOM append for Assistant Message
+    const assistantWrap = document.createElement("div");
+    assistantWrap.innerHTML = renderMessageHtml(data);
+    if (container) {
+      container.appendChild(assistantWrap.firstElementChild);
+      scrollToBottom();
+    }
 
     updateModelActivity('idle', `Response in ${elapsed}s`);
 
@@ -1689,4 +1732,283 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+// ── Chat History Drawer & Session Export ───────────────────────────────
+
+function toggleChatHistoryDrawer() {
+  const drawer = document.getElementById("chat-history-drawer");
+  const backdrop = document.getElementById("chat-history-backdrop");
+  if (!drawer) return;
+
+  const isClosed = drawer.classList.contains("translate-x-full");
+  if (isClosed) {
+    drawer.classList.remove("translate-x-full");
+    if (backdrop) backdrop.classList.remove("hidden");
+    renderChatHistoryDrawer();
+  } else {
+    drawer.classList.add("translate-x-full");
+    if (backdrop) backdrop.classList.add("hidden");
+  }
+}
+
+function renderChatHistoryDrawer() {
+  const container = document.getElementById("chat-history-list");
+  if (!container) return;
+
+  const msgCount = (state.chatHistory || []).length;
+  const userMessages = (state.chatHistory || []).filter(m => m.role === "user");
+  const firstPrompt = userMessages.length > 0 ? userMessages[0].content : "Initial workspace session";
+  const lastActive = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  container.innerHTML = `
+    <!-- Active Current Session Card -->
+    <div class="p-4 rounded-xl border-2 border-[#111] bg-white space-y-2 shadow-2xs">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[12px] font-mono font-extrabold uppercase text-[#111]">Active Session</span>
+        </div>
+        <span class="text-[11px] font-mono text-zinc-400 font-bold">${lastActive}</span>
+      </div>
+      <div class="text-[14px] font-extrabold text-[#111] line-clamp-2">
+        "${escapeHtml(firstPrompt)}"
+      </div>
+      <div class="flex items-center justify-between pt-1 text-[12px] font-mono text-zinc-500 font-bold">
+        <span>${msgCount} messages in thread</span>
+        <span class="text-emerald-700 font-extrabold">Live SQLite</span>
+      </div>
+    </div>
+
+    <!-- Session Guidance -->
+    <div class="p-4 rounded-xl border border-[#e4e4e7] bg-zinc-50 space-y-2">
+      <div class="text-[12px] font-mono uppercase text-zinc-500 font-bold">Persistence &amp; Storage</div>
+      <p class="text-[13px] text-zinc-600 font-bold leading-relaxed">
+        All chat messages, research cards, and tool states are automatically saved to local SQLite (<code class="bg-zinc-200 px-1 py-0.5 rounded font-mono text-xs">chronos.db</code>).
+      </p>
+      <div class="text-[12px] font-mono text-zinc-500 font-semibold pt-1">
+        • Click <strong>Export (.md)</strong> above to download markdown notes.<br>
+        • Click <strong>Clear Thread</strong> to start a fresh sprint.
+      </div>
+    </div>
+  `;
+}
+
+function exportChatTranscript() {
+  if (!state.chatHistory || state.chatHistory.length === 0) {
+    showToast("No chat history to export.", "warning");
+    return;
+  }
+
+  let md = `# CHRONOS Sentinel // Chat Session Transcript\n`;
+  md += `Exported: ${new Date().toISOString()}\n`;
+  md += `Active Model: ${state.activeModel} (${state.activeProvider})\n\n`;
+  md += `---\n\n`;
+
+  state.chatHistory.forEach((msg, idx) => {
+    const roleTitle = msg.role === 'user' ? 'USER' : 'CHRONOS SENTINEL';
+    md += `### [${idx + 1}] ${roleTitle}\n\n`;
+    md += `${msg.content}\n\n`;
+    if (msg.card_type) {
+      md += `*Attached Action Card: ${msg.card_type}*\n\n`;
+    }
+    md += `---\n\n`;
+  });
+
+  const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `chronos_session_${new Date().toISOString().substring(0, 10)}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast("Chat session exported to markdown successfully.", "success");
+}
+
+function clearChatHistoryConfirm() {
+  showConfirmModal(
+    "Clear Conversation History",
+    "This will permanently delete all conversation messages from local SQLite. Milestones and MCPs will remain intact.",
+    "Clear All",
+    async () => {
+      try {
+        await resetChat();
+        toggleChatHistoryDrawer();
+        showToast("Conversation thread cleared.", "info");
+      } catch (err) {
+        showToast("Error clearing chat: " + err.message, "error");
+      }
+    }
+  );
+}
+
+// ── Deadline Radar Adjuster & Buffer System ─────────────────────────────
+
+function openDeadlineModal() {
+  const modal = document.getElementById("deadline-modal");
+  if (!modal) return;
+
+  const titleInput = document.getElementById("deadline-modal-title");
+  const dateInput = document.getElementById("deadline-modal-date");
+
+  if (titleInput && state.activeEvent) {
+    titleInput.value = state.activeEvent.title || "";
+  }
+  if (dateInput) {
+    if (state.activeEvent && state.activeEvent.deadline) {
+      dateInput.value = state.activeEvent.deadline.substring(0, 16).replace("T", " ");
+    } else {
+      const future = new Date(Date.now() + 48 * 3600 * 1000);
+      dateInput.value = future.toISOString().substring(0, 16).replace("T", " ");
+    }
+  }
+
+  modal.classList.remove("hidden");
+}
+
+function closeDeadlineModal() {
+  const modal = document.getElementById("deadline-modal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function setQuickDate(hours) {
+  const dateInput = document.getElementById("deadline-modal-date");
+  if (!dateInput) return;
+
+  const base = new Date();
+  base.setTime(base.getTime() + hours * 3600 * 1000);
+  
+  const yyyy = base.getFullYear();
+  const mm = String(base.getMonth() + 1).padStart(2, '0');
+  const dd = String(base.getDate()).padStart(2, '0');
+  const hh = String(base.getHours()).padStart(2, '0');
+  const min = String(base.getMinutes()).padStart(2, '0');
+
+  dateInput.value = `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+}
+
+async function handleSaveDeadline(e) {
+  if (e) e.preventDefault();
+
+  const title = document.getElementById("deadline-modal-title")?.value?.trim();
+  const dateStr = document.getElementById("deadline-modal-date")?.value?.trim();
+
+  if (!title || !dateStr) {
+    showToast("Please provide both event title and target deadline.", "warning");
+    return;
+  }
+
+  const eventId = state.activeEvent ? state.activeEvent.id : 1;
+  const isoDeadline = dateStr.includes("T") ? dateStr : dateStr.replace(" ", "T") + ":00Z";
+
+  try {
+    const res = await fetch(`/api/events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: title,
+        deadline: isoDeadline,
+        status: "active"
+      })
+    });
+
+    if (!res.ok) throw new Error("Server responded with HTTP " + res.status);
+    const data = await res.json();
+
+    state.activeEvent = data.event;
+    state.targetDeadline = new Date(isoDeadline.replace("Z", ""));
+
+    const titleEl = document.getElementById("radar-event-title");
+    if (titleEl) titleEl.textContent = title;
+
+    closeDeadlineModal();
+    await loadCalendar();
+    await loadBriefing();
+    showToast("Deadline Radar updated successfully! Countdown resumed.", "success");
+  } catch (err) {
+    showToast("Failed to update deadline: " + err.message, "error");
+  }
+}
+
+async function quickExtendDeadline(hours) {
+  const eventId = state.activeEvent ? state.activeEvent.id : 1;
+  const currentTitle = state.activeEvent ? state.activeEvent.title : "Project Sprint Deadline";
+
+  // Calculate new target: if expired or past, extend from NOW; otherwise extend from current deadline
+  let baseTime = Date.now();
+  if (state.targetDeadline && state.targetDeadline.getTime() > baseTime) {
+    baseTime = state.targetDeadline.getTime();
+  }
+  const newDate = new Date(baseTime + hours * 3600 * 1000);
+  const isoDeadline = newDate.toISOString();
+
+  try {
+    const res = await fetch(`/api/events/${eventId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: currentTitle,
+        deadline: isoDeadline,
+        status: "active"
+      })
+    });
+
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+
+    state.activeEvent = data.event;
+    state.targetDeadline = newDate;
+
+    await loadCalendar();
+    await loadBriefing();
+    showToast(`+${hours}h buffer added to Deadline Radar!`, "success");
+  } catch (err) {
+    showToast("Failed to extend deadline: " + err.message, "error");
+  }
+}
+
+// ── External Connectors Hub View ───────────────────────────────────────
+
+async function loadAndRenderConnectors() {
+  try {
+    const res = await fetch("/api/integrations/status");
+    const data = await res.json();
+
+    const gcalBadge = document.getElementById("gcal-badge");
+    const gcalText = document.getElementById("gcal-status-text");
+    if (gcalBadge && data.google_calendar) {
+      gcalBadge.textContent = data.google_calendar.connected ? "Connected" : "Ready";
+      if (gcalText) gcalText.textContent = `Target: ${data.google_calendar.calendar_name}`;
+    }
+
+    const waBadge = document.getElementById("wa-badge");
+    if (waBadge && data.whatsapp) {
+      waBadge.textContent = data.whatsapp.configured ? "Graph API v21.0 Online" : "Simulated Active";
+    }
+  } catch (err) {
+    console.warn("Could not refresh connector indicators:", err);
+  }
+}
+
+async function triggerWhatsAppBriefingFromConnectors() {
+  const phone = document.getElementById("connectors-wa-phone")?.value?.trim() || "+15550199";
+  try {
+    showToast(`Dispatching live sentinel alert to ${phone}...`, "info", 1800);
+    const res = await fetch("/api/integrations/whatsapp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recipient: phone })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Executive briefing delivered to ${phone}`, "success", 4000);
+    } else {
+      showToast("Dispatch error: " + (data.error || "Unknown"), "error");
+    }
+  } catch (err) {
+    showToast("WhatsApp alert failed: " + err.message, "error");
+  }
 }

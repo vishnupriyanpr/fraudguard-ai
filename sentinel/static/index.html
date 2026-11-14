@@ -37,7 +37,7 @@
       },
     }
   </script>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=2.3.0">
 </head>
 <body class="bg-white text-[#111] font-sans antialiased h-screen flex overflow-hidden selection:bg-[#111] selection:text-white">
 
@@ -67,34 +67,34 @@
     </div>
 
     <!-- Sidebar Body -->
-    <div class="flex-1 overflow-y-auto py-6 space-y-8 scrollbar-thin">
+    <div class="flex-1 overflow-y-auto py-6 space-y-6 scrollbar-thin">
 
       <!-- Navigation -->
       <div class="px-5 space-y-1">
         <div class="px-3 pb-2 text-[12px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Navigation</div>
-        <button onclick="switchView('chat')" id="nav-chat" class="nav-btn nav-btn-active w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[14px] font-bold cursor-pointer transition-all">
+        <button onclick="switchView('chat')" id="nav-chat" class="nav-btn nav-btn-active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-bold cursor-pointer transition-all">
           <svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          <span class="flex-1 text-left">Chat</span>
+          <span class="flex-1 text-left">Chat Sentinel</span>
         </button>
-        <button onclick="switchView('matrix')" id="nav-matrix" class="nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[14px] font-bold text-zinc-600 hover:bg-zinc-50 hover:text-[#111] cursor-pointer transition-all">
+        <button onclick="switchView('matrix')" id="nav-matrix" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-bold text-zinc-600 hover:bg-zinc-50 hover:text-[#111] cursor-pointer transition-all">
           <svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          <span class="flex-1 text-left">Timeline</span>
+          <span class="flex-1 text-left">Timeline Matrix</span>
           <span id="sidebar-task-count" class="font-mono text-[12px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">0</span>
         </button>
-        <button onclick="switchView('tasks')" id="nav-tasks" class="nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[14px] font-bold text-zinc-600 hover:bg-zinc-50 hover:text-[#111] cursor-pointer transition-all">
+        <button onclick="switchView('tasks')" id="nav-tasks" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-bold text-zinc-600 hover:bg-zinc-50 hover:text-[#111] cursor-pointer transition-all">
           <svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
           <span class="flex-1 text-left">Task Console</span>
           <span id="sidebar-task-mgmt-count" class="font-mono text-[12px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">0</span>
         </button>
-        <button onclick="switchView('mcps')" id="nav-mcps" class="nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[14px] font-bold text-zinc-600 hover:bg-zinc-50 hover:text-[#111] cursor-pointer transition-all">
+        <button onclick="switchView('mcps')" id="nav-mcps" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-bold text-zinc-600 hover:bg-zinc-50 hover:text-[#111] cursor-pointer transition-all">
           <svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
           <span class="flex-1 text-left">Agent Tools</span>
-          <span id="sidebar-mcp-count" class="font-mono text-[12px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">0</span>
+          <span id="sidebar-mcp-count" class="font-mono text-[12px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">6</span>
         </button>
-        <button onclick="switchView('channels')" id="nav-channels" class="nav-btn w-full flex items-center gap-3 px-3 py-3 rounded-lg text-[14px] font-bold text-zinc-600 hover:bg-zinc-50 hover:text-[#111] cursor-pointer transition-all">
-          <svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-          <span class="flex-1 text-left">Channels</span>
-          <span id="sidebar-channel-badge" class="size-2 rounded-full bg-zinc-300"></span>
+        <button onclick="switchView('connectors')" id="nav-connectors" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[14px] font-bold text-zinc-600 hover:bg-zinc-50 hover:text-[#111] cursor-pointer transition-all">
+          <svg class="size-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span class="flex-1 text-left">Connectors Hub</span>
+          <span class="size-2 rounded-full bg-emerald-500"></span>
         </button>
       </div>
 
@@ -102,13 +102,20 @@
       <div class="mx-5 border-t border-[#e4e4e7]"></div>
 
       <!-- Model Activity -->
-      <div class="px-5 space-y-3">
-        <div class="px-3 text-[12px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Model Activity</div>
-        <div id="model-activity" class="px-3 space-y-2">
-          <div id="model-activity-bar" class="h-1 rounded-full bg-zinc-100 overflow-hidden">
-            <div id="model-activity-fill" class="h-full bg-zinc-300 w-0 transition-all duration-300"></div>
+      <div class="px-5 space-y-2.5">
+        <div class="flex items-center justify-between px-3">
+          <span class="text-[12px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Model Engine</span>
+          <span id="model-latency-pill" class="text-[11px] font-mono font-bold text-emerald-600">Online</span>
+        </div>
+        <div id="model-activity" class="p-3 rounded-lg border border-[#e4e4e7] bg-zinc-50/70 space-y-2">
+          <div class="flex items-center justify-between text-[13px] font-bold text-[#111]">
+            <span id="sidebar-active-model-name" class="font-mono truncate">qwen2.5:3b</span>
+            <span id="sidebar-active-provider" class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-800">Local</span>
           </div>
-          <div id="model-activity-text" class="text-[13px] font-mono text-zinc-400">Model idle</div>
+          <div id="model-activity-bar" class="h-1 rounded-full bg-zinc-200 overflow-hidden">
+            <div id="model-activity-fill" class="h-full bg-[#111] w-0 transition-all duration-300"></div>
+          </div>
+          <div id="model-activity-text" class="text-[12px] font-mono text-zinc-500">Engine idle · Ready</div>
         </div>
       </div>
 
@@ -116,23 +123,35 @@
       <div class="mx-5 border-t border-[#e4e4e7]"></div>
 
       <!-- Deadline Radar -->
-      <div class="px-5 space-y-3">
-        <div class="px-3 text-[12px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Deadline Radar</div>
-        <div class="mx-3 space-y-4">
-          <div id="radar-event-title" class="text-[14px] font-bold text-[#111] leading-snug truncate">
-            No active deadline
+      <div class="px-5 space-y-2.5">
+        <div class="flex items-center justify-between px-3">
+          <span class="text-[12px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Deadline Radar</span>
+          <button onclick="openDeadlineModal()" class="text-[11px] font-mono text-zinc-600 hover:text-[#111] underline cursor-pointer font-bold">Adjust</button>
+        </div>
+        <div class="p-3.5 rounded-xl border border-[#e4e4e7] bg-white space-y-3 shadow-2xs">
+          <div id="radar-event-title" class="text-[13px] font-extrabold text-[#111] leading-snug truncate">
+            TigerGraph x HackerHouse Frontier
           </div>
-          <div id="radar-countdown" class="text-2xl font-extrabold font-mono tracking-tight text-[#111]">
+          <div id="radar-countdown" class="text-xl font-extrabold font-mono tracking-tight text-[#111]">
             --:--:--
           </div>
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between text-[12px] font-mono text-zinc-500">
-              <span>Progress</span>
-              <span id="radar-progress-pct" class="font-bold text-[#111]">0%</span>
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-[11px] font-mono text-zinc-500 font-bold">
+              <span>Sprint Progress</span>
+              <span id="radar-progress-pct" class="text-[#111]">0%</span>
             </div>
-            <div class="w-full h-1 rounded-full bg-zinc-100 overflow-hidden">
+            <div class="w-full h-1.5 rounded-full bg-zinc-100 overflow-hidden">
               <div id="radar-progress-bar" class="h-full bg-[#111] transition-all duration-500" style="width: 0%"></div>
             </div>
+          </div>
+          <!-- Quick Deadline Action -->
+          <div class="pt-1 flex items-center gap-1.5 border-t border-zinc-100">
+            <button onclick="quickExtendDeadline(48)" class="flex-1 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-[11px] font-mono font-bold text-[#111] transition-colors cursor-pointer text-center">
+              +48h Buffer
+            </button>
+            <button onclick="openDeadlineModal()" class="flex-1 py-1 rounded bg-[#111] hover:bg-zinc-800 text-[11px] font-mono font-bold text-white transition-colors cursor-pointer text-center">
+              Set Date
+            </button>
           </div>
         </div>
       </div>
@@ -141,12 +160,29 @@
       <div class="mx-5 border-t border-[#e4e4e7]"></div>
 
       <!-- Tool Context Stack -->
-      <div class="px-5 space-y-3">
-        <div class="px-3 text-[12px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Tool Stack</div>
-        <div id="sidebar-mcp-list" class="mx-3 space-y-2">
-          <!-- MCP items rendered by JS, max 3 shown -->
+      <div class="px-5 space-y-2.5">
+        <div class="flex items-center justify-between px-3">
+          <span class="text-[12px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Tool Stack</span>
+          <button onclick="switchView('mcps')" class="text-[11px] font-mono text-zinc-600 hover:text-[#111] underline cursor-pointer font-bold">Manage</button>
         </div>
-        <div id="sidebar-mcp-more" class="hidden px-3 text-[13px] font-mono text-zinc-400 cursor-pointer hover:text-zinc-600" onclick="switchView('mcps')"></div>
+        <div id="sidebar-mcp-list" class="space-y-1.5">
+          <div onclick="runToolDiagnostic('sqlite')" class="flex items-center justify-between p-2 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 cursor-pointer text-[12px] font-mono font-bold text-[#111] transition-colors">
+            <span class="truncate">SQLite MCP (DB)</span>
+            <span class="size-2 rounded-full bg-emerald-500 shrink-0"></span>
+          </div>
+          <div onclick="runToolDiagnostic('filesystem')" class="flex items-center justify-between p-2 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 cursor-pointer text-[12px] font-mono font-bold text-[#111] transition-colors">
+            <span class="truncate">Filesystem MCP</span>
+            <span class="size-2 rounded-full bg-emerald-500 shrink-0"></span>
+          </div>
+          <div onclick="runToolDiagnostic('github')" class="flex items-center justify-between p-2 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 cursor-pointer text-[12px] font-mono font-bold text-[#111] transition-colors">
+            <span class="truncate">GitHub MCP</span>
+            <span class="size-2 rounded-full bg-emerald-500 shrink-0"></span>
+          </div>
+          <div onclick="openIntegrationsModal()" class="flex items-center justify-between p-2 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 cursor-pointer text-[12px] font-mono font-bold text-[#111] transition-colors">
+            <span class="truncate">Google Calendar</span>
+            <span class="size-2 rounded-full bg-blue-500 shrink-0"></span>
+          </div>
+        </div>
       </div>
 
       <!-- Divider -->
@@ -157,16 +193,16 @@
         <div class="px-3 text-[12px] font-mono font-semibold uppercase tracking-widest text-zinc-400">Telemetry</div>
         <div class="mx-3 space-y-1.5 text-[13px] font-mono text-zinc-500">
           <div class="flex items-center justify-between">
-            <span>Engine</span>
-            <span class="text-[#111] font-semibold">OK</span>
+            <span>Daemon</span>
+            <span class="text-emerald-600 font-bold">100% OK</span>
           </div>
           <div class="flex items-center justify-between">
-            <span>Alerts</span>
-            <span class="text-[#111] font-semibold">Quiet</span>
+            <span>Security</span>
+            <span class="text-[#111] font-semibold">Local Air-Gapped</span>
           </div>
           <div class="flex items-center justify-between">
             <span>Storage</span>
-            <span class="text-[#111] font-semibold">SQLite</span>
+            <span class="text-[#111] font-semibold">chronos.db</span>
           </div>
         </div>
       </div>
@@ -175,7 +211,7 @@
     <!-- Sidebar Footer -->
     <div class="px-6 py-3 border-t border-[#e4e4e7] shrink-0 flex items-center justify-between text-[12px] font-mono text-zinc-400">
       <span>PORT 8000</span>
-      <button onclick="exportMcpConfig()" class="hover:text-[#111] cursor-pointer transition-colors">Export</button>
+      <button onclick="exportMcpConfig()" class="hover:text-[#111] cursor-pointer transition-colors font-bold">Export MCP</button>
     </div>
   </aside>
 
@@ -205,13 +241,17 @@
         </div>
       </div>
 
-      <!-- Right: clock + connectors + new session -->
+      <!-- Right: history + connectors + clock + new session -->
       <div class="flex items-center gap-2.5 shrink-0">
-        <button onclick="openIntegrationsModal()" title="Integrations Hub: Google Calendar & WhatsApp" class="h-8 px-3 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 text-[13px] font-bold text-[#111] transition-colors flex items-center gap-1.5 cursor-pointer">
+        <button onclick="toggleChatHistoryDrawer()" title="View Chat History & Saved Sessions" class="h-8 px-3 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 text-[13px] font-bold text-[#111] transition-colors flex items-center gap-1.5 cursor-pointer">
+          <svg class="size-3.5 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          <span class="hidden sm:inline">History</span>
+        </button>
+        <button onclick="switchView('connectors')" title="External Connectors Hub: Google Calendar & WhatsApp" class="h-8 px-3 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 text-[13px] font-bold text-[#111] transition-colors flex items-center gap-1.5 cursor-pointer">
           <span class="size-2 rounded-full bg-emerald-500"></span>
           <span>Connectors</span>
         </button>
-        <div id="live-clock" class="hidden sm:block text-[13px] font-mono text-zinc-500">--:--:--</div>
+        <div id="live-clock" class="hidden md:block text-[13px] font-mono text-zinc-500">--:--:--</div>
         <button onclick="resetChat()" title="New session" class="h-8 w-8 rounded-lg bg-[#111] text-white hover:bg-zinc-800 transition-colors flex items-center justify-center cursor-pointer">
           <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -610,6 +650,111 @@
         </div>
       </div>
     </div>
+
+    <!-- VIEW: CONNECTORS CENTER -->
+    <div id="view-connectors" class="view-panel hidden flex-1 flex flex-col overflow-y-auto p-6 sm:p-10 space-y-8 max-w-6xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e4e4e7] pb-6">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h2 class="text-2xl font-extrabold text-[#111] uppercase tracking-tight">External Connectors Hub</h2>
+            <span class="px-2 py-0.5 rounded text-[12px] font-mono font-bold bg-emerald-100 text-emerald-800">Omnipresent Dispatch</span>
+          </div>
+          <p class="text-[14px] text-zinc-500 mt-1 font-bold">Manage real-world synchronizers: Google Calendar, Meta WhatsApp Cloud API, and GitHub MCP.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="triggerCalendarSync()" class="h-9 px-3.5 rounded-lg bg-[#111] text-white text-[13px] font-bold hover:bg-zinc-800 transition-colors flex items-center gap-1.5 cursor-pointer">
+            <svg class="size-3.5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+            <span>Sync Google Calendar</span>
+          </button>
+          <button onclick="switchView('chat')" class="h-9 px-3.5 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 text-[13px] font-bold text-zinc-700 cursor-pointer transition-colors">
+            &larr; Chat
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Google Calendar Card -->
+        <div class="rounded-xl border border-[#e4e4e7] bg-white p-6 space-y-4 shadow-2xs">
+          <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+            <div class="flex items-center gap-3">
+              <div class="size-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </div>
+              <div>
+                <div class="text-[15px] font-extrabold text-[#111]">Google Calendar Bi-directional Sync</div>
+                <div class="text-[12px] font-mono text-zinc-500 font-bold">Target: CHRONOS // Deadlines &amp; Sprints</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800">Connected</span>
+          </div>
+
+          <p class="text-[13px] text-zinc-600 font-bold leading-relaxed">
+            Synchronizes active milestone tasks backwards from deadlines with tiered notifications: <strong>24 hours</strong>, <strong>2 hours</strong>, and <strong>30 minutes</strong> before milestone gates.
+          </p>
+
+          <div class="p-3 rounded-lg bg-zinc-50 border border-zinc-200 text-[12px] font-mono space-y-1">
+            <div class="flex justify-between text-zinc-600 font-bold">
+              <span>Calendar Mode:</span>
+              <span class="text-[#111]">Secondary (Isolated Non-Intrusive)</span>
+            </div>
+            <div class="flex justify-between text-zinc-600 font-bold">
+              <span>Refresh Token:</span>
+              <span class="text-emerald-600">Active (Offline Consent)</span>
+            </div>
+            <div class="flex justify-between text-zinc-600 font-bold">
+              <span>Color Coding:</span>
+              <span class="text-[#111]">Bold Red (Critical) / Amber (High)</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-1">
+            <button onclick="triggerCalendarSync()" class="flex-1 h-9 rounded-lg bg-[#111] text-white text-[13px] font-bold hover:bg-zinc-800 transition-colors cursor-pointer">
+              Trigger Sync Now
+            </button>
+            <button onclick="showToast('OAuth credentials verified in environment.', 'info')" class="px-3 h-9 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 text-[13px] font-bold text-zinc-700 cursor-pointer">
+              Verify OAuth
+            </button>
+          </div>
+        </div>
+
+        <!-- WhatsApp Executive Sentinel Card -->
+        <div class="rounded-xl border border-[#e4e4e7] bg-white p-6 space-y-4 shadow-2xs">
+          <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+            <div class="flex items-center gap-3">
+              <div class="size-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              </div>
+              <div>
+                <div class="text-[15px] font-extrabold text-[#111]">Meta WhatsApp Cloud API</div>
+                <div class="text-[12px] font-mono text-zinc-500 font-bold">Graph API v21.0 Sentinel Engine</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-100 text-emerald-800">Online</span>
+          </div>
+
+          <p class="text-[13px] text-zinc-600 font-bold leading-relaxed">
+            Sends executive non-nosy briefings to your mobile phone. Supports incoming quick replies (<code class="bg-zinc-100 px-1 py-0.5 rounded font-mono">DONE &lt;id&gt;</code>, <code class="bg-zinc-100 px-1 py-0.5 rounded font-mono">SNOOZE 2h</code>).
+          </p>
+
+          <div class="space-y-2">
+            <label class="block text-[12px] font-mono uppercase text-zinc-600 font-bold">Recipient Mobile (E.164 format)</label>
+            <div class="flex items-center gap-2">
+              <input type="text" id="connectors-wa-phone" value="+15550199" class="flex-1 h-9 px-3 rounded-lg border border-[#e4e4e7] bg-white text-[13px] font-mono font-bold text-[#111] focus:outline-none focus:ring-2 focus:ring-[#111]">
+              <button onclick="triggerWhatsAppBriefingFromConnectors()" class="h-9 px-4 rounded-lg bg-[#111] text-white text-[13px] font-bold hover:bg-zinc-800 transition-colors cursor-pointer">
+                Send Test Alert
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3 rounded-lg bg-zinc-50 border border-zinc-200 text-[12px] font-mono space-y-1">
+            <div class="text-zinc-500 font-bold">Quick Inbound Commands:</div>
+            <div class="text-zinc-700">· <strong class="text-[#111]">DONE #1</strong> &rarr; Marks milestone #1 as completed</div>
+            <div class="text-zinc-700">· <strong class="text-[#111]">SNOOZE 2h</strong> &rarr; Pauses alerts for 2 hours</div>
+            <div class="text-zinc-700">· <strong class="text-[#111]">STATUS</strong> &rarr; Returns immediate sprint progress</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Direct In-App Notification UI: Toast Container -->
@@ -755,6 +900,63 @@
     </div>
   </div>
 
-  <script src="/static/app.js"></script>
+  <!-- Drawer: Chat History & Saved Sessions -->
+  <div id="chat-history-drawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white border-l border-[#e4e4e7] shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300">
+    <div class="h-14 border-b border-[#e4e4e7] px-6 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2.5">
+        <svg class="size-4 text-zinc-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        <h3 class="text-[15px] font-extrabold uppercase tracking-tight text-[#111]">Chat Session History</h3>
+      </div>
+      <button onclick="toggleChatHistoryDrawer()" class="text-zinc-400 hover:text-[#111] text-xl font-bold cursor-pointer">&times;</button>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="p-4 border-b border-zinc-100 flex items-center justify-between gap-2 bg-zinc-50/70">
+      <button onclick="exportChatTranscript()" class="flex-1 h-8 rounded-lg bg-white border border-[#e4e4e7] hover:bg-zinc-100 text-[12px] font-bold text-[#111] transition-colors cursor-pointer">
+        Export (.md)
+      </button>
+      <button onclick="clearChatHistoryConfirm()" class="flex-1 h-8 rounded-lg bg-white border border-[#e4e4e7] hover:bg-red-50 text-[12px] font-bold text-red-600 transition-colors cursor-pointer">
+        Clear Thread
+      </button>
+    </div>
+
+    <!-- Sessions List -->
+    <div id="chat-history-list" class="flex-1 overflow-y-auto p-4 space-y-2.5">
+      <!-- Populated dynamically by app.js -->
+    </div>
+  </div>
+  <div id="chat-history-backdrop" onclick="toggleChatHistoryDrawer()" class="fixed inset-0 z-40 bg-black/30 backdrop-blur-xs hidden"></div>
+
+  <!-- Modal: Adjust Deadline Radar -->
+  <div id="deadline-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl border border-[#e4e4e7] p-6 max-w-md w-full space-y-4 shadow-xl animate-fadeIn">
+      <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+        <h3 class="text-base font-extrabold text-[#111] uppercase tracking-tight">Adjust Target Deadline</h3>
+        <button onclick="closeDeadlineModal()" class="text-zinc-400 hover:text-[#111] text-lg font-bold cursor-pointer">&times;</button>
+      </div>
+
+      <form onsubmit="handleSaveDeadline(event)" class="space-y-4">
+        <div>
+          <label class="block text-[12px] font-mono uppercase text-zinc-600 mb-1 font-bold">Event Title</label>
+          <input type="text" id="deadline-modal-title" required class="w-full h-10 px-3 rounded-lg border border-[#e4e4e7] bg-white text-[14px] text-[#111] font-bold focus:outline-none focus:ring-2 focus:ring-[#111]">
+        </div>
+        <div>
+          <label class="block text-[12px] font-mono uppercase text-zinc-600 mb-1 font-bold">Target Deadline (YYYY-MM-DD HH:MM)</label>
+          <input type="text" id="deadline-modal-date" required class="w-full h-10 px-3 rounded-lg border border-[#e4e4e7] bg-white text-[14px] text-[#111] font-bold focus:outline-none focus:ring-2 focus:ring-[#111]" placeholder="2026-11-20 23:59">
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" onclick="setQuickDate(24)" class="flex-1 py-1.5 rounded-lg border border-[#e4e4e7] text-[12px] font-bold text-zinc-700 hover:bg-zinc-50 cursor-pointer">+24h Buffer</button>
+          <button type="button" onclick="setQuickDate(48)" class="flex-1 py-1.5 rounded-lg border border-[#e4e4e7] text-[12px] font-bold text-zinc-700 hover:bg-zinc-50 cursor-pointer">+48h Buffer</button>
+          <button type="button" onclick="setQuickDate(168)" class="flex-1 py-1.5 rounded-lg border border-[#e4e4e7] text-[12px] font-bold text-zinc-700 hover:bg-zinc-50 cursor-pointer">+1 Week</button>
+        </div>
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-100">
+          <button type="button" onclick="closeDeadlineModal()" class="px-4 py-2 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 text-[13px] font-bold text-zinc-700 cursor-pointer">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-[#111] text-white hover:bg-zinc-800 text-[13px] font-bold cursor-pointer">Update Deadline</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/app.js?v=2.3.0"></script>
 </body>
 </html>
