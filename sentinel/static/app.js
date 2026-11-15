@@ -936,6 +936,43 @@ function renderFullCalendar() {
   const toolCountDisp = document.getElementById("timeline-tool-count");
   if (toolCountDisp) toolCountDisp.textContent = `${state.mcps.length} Tools Mapped`;
 
+  // Update right rail phase progress roadmap
+  const p1 = tasks.filter(t => t.phase && t.phase.includes("Phase 1"));
+  const p1Done = p1.filter(t => t.status === "done").length;
+  const p1Pct = p1.length > 0 ? Math.round((p1Done / p1.length) * 100) : 0;
+
+  const p2 = tasks.filter(t => t.phase && t.phase.includes("Phase 2"));
+  const p2Done = p2.filter(t => t.status === "done").length;
+  const p2Pct = p2.length > 0 ? Math.round((p2Done / p2.length) * 100) : 0;
+
+  const p3 = tasks.filter(t => t.phase && t.phase.includes("Phase 3"));
+  const p3Done = p3.filter(t => t.status === "done").length;
+  const p3Pct = p3.length > 0 ? Math.round((p3Done / p3.length) * 100) : 0;
+
+  const p4 = tasks.filter(t => t.phase && t.phase.includes("Phase 4"));
+  const p4Done = p4.filter(t => t.status === "done").length;
+  const p4Pct = p4.length > 0 ? Math.round((p4Done / p4.length) * 100) : 0;
+
+  const r1 = document.getElementById("rail-phase1-stat");
+  const b1 = document.getElementById("rail-phase1-bar");
+  if (r1) r1.textContent = `${p1Pct}% (${p1Done}/${p1.length})`;
+  if (b1) b1.style.width = `${p1Pct}%`;
+
+  const r2 = document.getElementById("rail-phase2-stat");
+  const b2 = document.getElementById("rail-phase2-bar");
+  if (r2) r2.textContent = `${p2Pct}% (${p2Done}/${p2.length})`;
+  if (b2) b2.style.width = `${p2Pct}%`;
+
+  const r3 = document.getElementById("rail-phase3-stat");
+  const b3 = document.getElementById("rail-phase3-bar");
+  if (r3) r3.textContent = `${p3Pct}% (${p3Done}/${p3.length})`;
+  if (b3) b3.style.width = `${p3Pct}%`;
+
+  const r4 = document.getElementById("rail-phase4-stat");
+  const b4 = document.getElementById("rail-phase4-bar");
+  if (r4) r4.textContent = `${p4Pct}% (${p4Done}/${p4.length})`;
+  if (b4) b4.style.width = `${p4Pct}%`;
+
   let filtered = state.calendar;
   if (state.timelineFilter === 'pending') {
     filtered = state.calendar.filter(i => i.type === 'task_due' && i.status !== 'done');
@@ -1180,10 +1217,10 @@ function filterTaskConsole() {
 
   if (filtered.length === 0) {
     container.innerHTML = `
-      <div class="p-8 rounded-xl border border-[#e4e4e7] bg-white text-center space-y-2">
-        <div class="text-[15px] font-extrabold text-[#111]">No matching tasks found</div>
-        <p class="text-[13px] text-zinc-500 font-bold">Try adjusting your search criteria or create a new custom task.</p>
-        <button onclick="toggleAddTaskForm()" class="mt-2 h-9 px-4 rounded-lg bg-[#111] text-white text-[13px] font-bold hover:bg-zinc-800 transition-colors cursor-pointer">
+      <div class="col-span-full p-8 rounded-xl border border-zinc-200 bg-white text-center space-y-2">
+        <div class="text-[14.5px] font-semibold text-zinc-900">No matching tasks found</div>
+        <p class="text-[13px] text-zinc-500">Try adjusting your search criteria or create a new custom task.</p>
+        <button onclick="toggleAddTaskForm()" class="mt-2 h-8.5 px-3.5 rounded-lg bg-zinc-900 text-white text-[12.5px] font-medium hover:bg-zinc-800 transition-colors cursor-pointer">
           Create Task
         </button>
       </div>
@@ -1374,42 +1411,42 @@ function renderAgentToolsCatalog() {
     }).join("");
 
     return `
-      <div class="p-6 rounded-xl border border-[#e4e4e7] bg-white space-y-4 shadow-2xs hover:border-zinc-400 transition-all">
+      <div class="p-5 rounded-xl border border-zinc-200 bg-white space-y-3.5 shadow-2xs hover:border-zinc-300 transition-all">
         <!-- Tool Header -->
         <div class="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-[15px] font-extrabold text-[#111]">${escapeHtml(tool.name)}</span>
-              <span class="px-1.5 py-0.5 rounded text-[11px] font-mono font-bold bg-zinc-100 text-zinc-700">v${tool.version}</span>
+              <span class="text-[14.5px] font-semibold text-zinc-900">${escapeHtml(tool.name)}</span>
+              <span class="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-zinc-100 text-zinc-700">v${tool.version}</span>
             </div>
-            <div class="text-[12px] font-mono text-zinc-500 font-bold mt-0.5">${escapeHtml(tool.category)}</div>
+            <div class="text-[11.5px] font-mono text-zinc-500 mt-0.5">${escapeHtml(tool.category)}</div>
           </div>
-          <div class="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-mono font-extrabold ${diagnostic && diagnostic.success ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 'bg-zinc-100 text-zinc-700'}">
+          <div class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-medium ${diagnostic && diagnostic.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-zinc-100 text-zinc-700'}">
             <span class="size-1.5 rounded-full ${diagnostic && diagnostic.success ? 'bg-emerald-500' : 'bg-zinc-400'}"></span>
             <span>${statusText}</span>
           </div>
         </div>
 
         <!-- Description conforming to agent-tool-builder specs -->
-        <p class="text-[13px] text-zinc-600 leading-relaxed font-bold">
+        <p class="text-[12.5px] text-zinc-600 leading-relaxed">
           ${escapeHtml(tool.description)}
         </p>
 
         <!-- Parameters Schema -->
         <div class="space-y-2 pt-1 border-t border-zinc-100">
-          <div class="text-[11px] font-mono uppercase tracking-wider text-zinc-400 font-extrabold">Schema Parameters:</div>
+          <div class="text-[11px] font-medium text-zinc-400">Schema Parameters:</div>
           <div class="space-y-2">
             ${paramInputs}
           </div>
         </div>
 
         <!-- Action Runner -->
-        <div class="flex items-center justify-between pt-2">
-          <button onclick="runToolDiagnostic('${tool.id}')" id="btn-test-${tool.id}" class="h-9 px-4 rounded-lg bg-[#111] text-white text-[13px] font-bold hover:bg-zinc-800 transition-colors flex items-center gap-1.5 cursor-pointer">
+        <div class="flex items-center justify-between pt-1">
+          <button onclick="runToolDiagnostic('${tool.id}')" id="btn-test-${tool.id}" class="h-8.5 px-3.5 rounded-lg bg-zinc-900 text-white text-[12.5px] font-medium hover:bg-zinc-800 transition-colors flex items-center gap-1.5 cursor-pointer">
             <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             <span>Run Diagnostic</span>
           </button>
-          <span class="text-[12px] font-mono font-bold text-zinc-400" id="latency-${tool.id}">Latency: ${latencyText}</span>
+          <span class="text-[11.5px] font-mono text-zinc-400" id="latency-${tool.id}">Latency: ${latencyText}</span>
         </div>
 
         <!-- Expandable Execution Output -->
