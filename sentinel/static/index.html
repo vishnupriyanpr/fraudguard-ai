@@ -175,10 +175,10 @@
   <!-- MAIN WRAPPER -->
   <div class="flex-1 flex flex-col h-screen overflow-hidden bg-white">
 
-    <!-- Header: Perfectly Aligned 64px -->
-    <header id="main-header" class="h-16 min-h-[64px] max-h-[64px] border-b border-[#e4e4e7] bg-white px-6 flex items-center justify-between shrink-0 z-20 box-border">
+    <!-- Header: Perfectly Aligned 64px with Absolute Center Model Indicator -->
+    <header id="main-header" class="h-16 min-h-[64px] max-h-[64px] border-b border-[#e4e4e7] bg-white px-4 sm:px-6 flex items-center justify-between shrink-0 z-20 box-border relative">
       <!-- Left: Navigation / Breadcrumbs -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 shrink-0">
         <button onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-zinc-600 cursor-pointer">
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
@@ -189,9 +189,9 @@
         </div>
       </div>
 
-      <!-- Center: Model Selector -->
-      <div class="hidden sm:flex items-center gap-2">
-        <div class="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors">
+      <!-- Center: Model Selector (Mathematically Centered) -->
+      <div id="main-header-model-wrap" class="hidden sm:flex items-center gap-2 pointer-events-auto">
+        <div class="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 transition-colors shadow-2xs">
           <select id="model-selector" onchange="switchModel(this.value)" class="text-[13px] font-mono font-medium text-zinc-800 bg-transparent border-none outline-none cursor-pointer appearance-none pr-4">
             <option value="qwen3.5:9b">qwen3.5:9b</option>
             <option value="qwen2.5:3b">qwen2.5:3b</option>
@@ -202,17 +202,17 @@
       </div>
 
       <!-- Right Actions: History + Integrations + Clock + New Thread -->
-      <div class="flex items-center gap-2.5 shrink-0">
-        <button onclick="toggleChatHistoryDrawer()" title="View Session History" class="h-10 px-4 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-[13px] font-medium text-zinc-700 transition-colors flex items-center gap-2 cursor-pointer">
-          <svg class="size-4 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
-          <span class="hidden sm:inline">History</span>
+      <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 ml-auto z-10">
+        <button onclick="toggleChatHistoryDrawer()" title="View Session History" class="h-10 px-3 xl:px-4 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-[13px] font-medium text-zinc-700 transition-colors flex items-center gap-2 cursor-pointer shadow-2xs">
+          <svg class="size-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          <span class="hidden xl:inline">History</span>
         </button>
-        <button onclick="switchView('connectors')" title="Manage Integrations" class="h-10 px-4 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-[13px] font-medium text-zinc-700 transition-colors flex items-center gap-2 cursor-pointer">
-          <svg class="size-4 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-          <span>Integrations</span>
+        <button onclick="switchView('connectors')" title="Manage Integrations" class="h-10 px-3 xl:px-4 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-[13px] font-medium text-zinc-700 transition-colors flex items-center gap-2 cursor-pointer shadow-2xs">
+          <svg class="size-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span class="hidden xl:inline">Integrations</span>
         </button>
-        <div id="live-clock" class="hidden md:block text-[13px] font-mono text-zinc-400 px-1">--:--:--</div>
-        <button onclick="resetChat()" title="Start New Conversation" class="h-10 w-10 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 transition-colors flex items-center justify-center cursor-pointer">
+        <div id="live-clock" class="hidden 2xl:block text-[13px] font-mono text-zinc-400 px-1 select-none">--:--:--</div>
+        <button onclick="resetChat()" title="Start New Conversation" class="h-10 w-10 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 transition-colors flex items-center justify-center cursor-pointer shrink-0 shadow-2xs">
           <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -225,10 +225,10 @@
     <div id="view-chat" class="view-panel flex-1 flex flex-col overflow-hidden relative">
 
       <!-- Messages -->
-      <div id="chat-history" class="flex-1 overflow-y-auto px-6 sm:px-10 py-8 scrollbar-thin">
+      <div id="chat-history" class="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-8 scrollbar-thin">
 
         <!-- Hero (shown when empty) -->
-        <div id="hero-command-deck" class="max-w-3xl mx-auto py-12 space-y-8 animate-fadeIn">
+        <div id="hero-command-deck" class="w-full max-w-3xl xl:max-w-4xl mx-auto py-10 space-y-8 animate-fadeIn">
           <div class="space-y-2.5">
             <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-zinc-600 border border-zinc-200 bg-zinc-50">
               Workspace Assistant
@@ -236,48 +236,54 @@
             <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 leading-tight">
               Manage deliverables and project timelines.
             </h1>
-            <p class="text-[14.5px] text-zinc-500 max-w-lg leading-relaxed font-normal">
+            <p class="text-[14.5px] text-zinc-500 max-w-xl leading-relaxed font-normal">
               Organize project requirements, backwards-schedule milestone phases, configure tools, and stay ahead of upcoming deadlines.
             </p>
           </div>
 
           <!-- Bento Cards -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div onclick="quickSend('I entered https://devpost.com/software/frontier-ai-challenge, deadline is this Sunday')" class="p-4.5 rounded-xl border border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-2xs transition-all cursor-pointer space-y-2">
-              <div class="size-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
-                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-stretch">
+            <div onclick="quickSend('I entered https://devpost.com/software/frontier-ai-challenge, deadline is this Sunday')" class="flex flex-col justify-between p-5 rounded-xl border border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-2xs transition-all cursor-pointer h-full">
+              <div class="space-y-2">
+                <div class="size-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
+                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                </div>
+                <div class="text-[14px] font-semibold text-zinc-900">Project Intake</div>
+                <p class="text-[12px] text-zinc-500 leading-relaxed">Extract rubrics, requirements, and target dates from project links.</p>
               </div>
-              <div class="text-[14px] font-semibold text-zinc-900">Project Intake</div>
-              <p class="text-[12px] text-zinc-500 leading-relaxed">Extract rubrics, requirements, and target dates from project links.</p>
             </div>
-            <div onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="p-4.5 rounded-xl border border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-2xs transition-all cursor-pointer space-y-2">
-              <div class="size-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
-                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            <div onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="flex flex-col justify-between p-5 rounded-xl border border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-2xs transition-all cursor-pointer h-full">
+              <div class="space-y-2">
+                <div class="size-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
+                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                </div>
+                <div class="text-[14px] font-semibold text-zinc-900">Milestone Roadmap</div>
+                <p class="text-[12px] text-zinc-500 leading-relaxed">Schedule milestone gates backwards from submission targets.</p>
               </div>
-              <div class="text-[14px] font-semibold text-zinc-900">Milestone Roadmap</div>
-              <p class="text-[12px] text-zinc-500 leading-relaxed">Schedule milestone gates backwards from submission targets.</p>
             </div>
-            <div onclick="switchView('connectors')" class="p-4.5 rounded-xl border border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-2xs transition-all cursor-pointer space-y-2">
-              <div class="size-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
-                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            <div onclick="switchView('connectors')" class="flex flex-col justify-between p-5 rounded-xl border border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-2xs transition-all cursor-pointer h-full">
+              <div class="space-y-2">
+                <div class="size-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-700">
+                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                </div>
+                <div class="text-[14px] font-semibold text-zinc-900">Calendar &amp; WhatsApp</div>
+                <p class="text-[12px] text-zinc-500 leading-relaxed">Sync deadlines to Google Calendar and receive WhatsApp reminders.</p>
               </div>
-              <div class="text-[14px] font-semibold text-zinc-900">Calendar &amp; WhatsApp</div>
-              <p class="text-[12px] text-zinc-500 leading-relaxed">Sync deadlines to Google Calendar and receive WhatsApp reminders.</p>
             </div>
           </div>
 
           <!-- Suggestion Chips -->
-          <div id="hero-chips" class="flex flex-wrap gap-2.5">
-            <button onclick="quickSend('I entered https://devpost.com/software/frontier-ai-challenge, deadline is this Sunday')" class="h-9 px-4 rounded-xl text-xs font-semibold bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors cursor-pointer flex items-center">Import project link</button>
-            <button onclick="quickSend('What is my immediate next deadline and milestone?')" class="h-9 px-4 rounded-xl text-xs font-semibold bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors cursor-pointer flex items-center">Check upcoming milestone</button>
-            <button onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="h-9 px-4 rounded-xl text-xs font-semibold bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors cursor-pointer flex items-center">Prioritize backend track</button>
+          <div id="hero-chips" class="flex flex-wrap items-center gap-2.5 pt-1">
+            <button onclick="quickSend('I entered https://devpost.com/software/frontier-ai-challenge, deadline is this Sunday')" class="h-9 px-4 rounded-xl text-xs font-semibold bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors cursor-pointer flex items-center shadow-2xs">Import project link</button>
+            <button onclick="quickSend('What is my immediate next deadline and milestone?')" class="h-9 px-4 rounded-xl text-xs font-semibold bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors cursor-pointer flex items-center shadow-2xs">Check upcoming milestone</button>
+            <button onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="h-9 px-4 rounded-xl text-xs font-semibold bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors cursor-pointer flex items-center shadow-2xs">Prioritize backend track</button>
           </div>
         </div>
       </div>
 
       <!-- Input Footer -->
-      <div id="chat-input-area" class="shrink-0 bg-white border-t border-[#e4e4e7] px-4 sm:px-8 py-3.5 sm:py-4 z-20">
-        <form id="chat-form" onsubmit="handleSend(event)" class="max-w-3xl mx-auto relative flex items-center">
+      <div id="chat-input-area" class="shrink-0 bg-white border-t border-[#e4e4e7] px-4 sm:px-6 md:px-8 py-3.5 sm:py-4 z-20">
+        <form id="chat-form" onsubmit="handleSend(event)" class="w-full max-w-3xl xl:max-w-4xl mx-auto relative flex items-center">
           <input
             type="text"
             id="chat-input"

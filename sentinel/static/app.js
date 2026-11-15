@@ -423,7 +423,7 @@ function renderMessageHtml(msg) {
 
   if (isUser) {
     return `
-      <div class="flex justify-end animate-fadeIn my-5">
+      <div class="w-full max-w-3xl xl:max-w-4xl mx-auto my-5 flex justify-end animate-fadeIn">
         <div class="max-w-xl rounded-2xl rounded-tr-xs bg-zinc-900 text-white px-4.5 py-3 text-[14px] leading-relaxed shadow-2xs">
           ${formattedContent}
         </div>
@@ -458,12 +458,13 @@ function renderMessageHtml(msg) {
   ` : '';
 
   return `
-    <div class="flex items-start gap-3.5 max-w-3xl animate-fadeIn my-6 group" data-msg-id="${escapeHtml(String(msg.id || ''))}">
-      <!-- Branded Monogram Avatar with Active Status Indicator -->
-      <div class="relative size-8 rounded-lg bg-zinc-950 flex items-center justify-center text-white shrink-0 mt-0.5 font-bold font-sans text-xs tracking-tight shadow-2xs select-none">
-        <span>C</span>
-        <span class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
-      </div>
+    <div class="w-full max-w-3xl xl:max-w-4xl mx-auto my-6 animate-fadeIn group" data-msg-id="${escapeHtml(String(msg.id || ''))}">
+      <div class="flex items-start gap-3.5">
+        <!-- Branded Monogram Avatar with Active Status Indicator -->
+        <div class="relative size-8 rounded-lg bg-zinc-950 flex items-center justify-center text-white shrink-0 mt-0.5 font-bold font-sans text-xs tracking-tight shadow-2xs select-none">
+          <span>C</span>
+          <span class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+        </div>
 
       <div class="flex-1 space-y-2.5 min-w-0">
         <!-- Assistant Header -->
@@ -521,6 +522,7 @@ function renderMessageHtml(msg) {
         </div>
       </div>
     </div>
+  </div>
   `;
 }
 
@@ -801,7 +803,7 @@ async function handleSend(e) {
   // Direct DOM Insert for In-Chat Thinking Indicator
   const thinkingRow = document.createElement("div");
   thinkingRow.id = "thinking-bubble";
-  thinkingRow.className = "flex items-start gap-4 max-w-3xl animate-fadeIn my-6";
+  thinkingRow.className = "w-full max-w-3xl xl:max-w-4xl mx-auto flex items-start gap-3.5 animate-fadeIn my-6";
   thinkingRow.innerHTML = `
     <div class="size-8 rounded-lg bg-[#111] flex items-center justify-center text-white shrink-0 mt-0.5">
       <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">

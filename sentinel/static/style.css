@@ -64,6 +64,17 @@ body {
   box-sizing: border-box !important;
 }
 
+#main-header {
+  position: relative !important;
+}
+
+#main-header-model-wrap {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
 #send-btn {
   width: 42px !important;
   height: 42px !important;
