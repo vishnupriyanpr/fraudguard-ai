@@ -441,8 +441,8 @@ function renderMessageHtml(msg) {
   } else if (msg.card_type === "channel_connect_trigger") {
     cardHtml = `
       <div class="pt-2">
-        <button onclick="switchView('connectors')" class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg bg-zinc-900 text-white text-[13px] font-medium hover:bg-zinc-800 transition-colors cursor-pointer shadow-2xs">
-          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <button onclick="switchView('connectors')" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-zinc-900 text-white text-xs font-semibold hover:bg-zinc-800 transition-colors cursor-pointer shadow-2xs">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
           <span>Configure Integrations</span>
         </button>
       </div>
@@ -451,8 +451,8 @@ function renderMessageHtml(msg) {
 
   const timeLabel = msg.created_at ? formatMessageTime(msg.created_at) : 'Just now';
   const latencyBadge = msg.latency ? `
-    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-mono text-zinc-500 bg-zinc-100 border border-zinc-200/70">
-      <svg class="size-2.5 text-amber-500 fill-amber-500" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono text-zinc-600 bg-zinc-100 border border-zinc-200/70 font-medium">
+      <svg class="size-3 text-amber-500 fill-amber-500" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
       ${escapeHtml(msg.latency)}
     </span>
   ` : '';
@@ -460,61 +460,61 @@ function renderMessageHtml(msg) {
   return `
     <div class="flex items-start gap-3.5 max-w-3xl animate-fadeIn my-6 group" data-msg-id="${escapeHtml(String(msg.id || ''))}">
       <!-- Branded Monogram Avatar with Active Status Indicator -->
-      <div class="relative size-7 rounded-lg bg-zinc-950 flex items-center justify-center text-white shrink-0 mt-0.5 font-bold font-sans text-xs tracking-tight shadow-2xs select-none">
+      <div class="relative size-8 rounded-lg bg-zinc-950 flex items-center justify-center text-white shrink-0 mt-0.5 font-bold font-sans text-xs tracking-tight shadow-2xs select-none">
         <span>C</span>
-        <span class="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+        <span class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
       </div>
 
       <div class="flex-1 space-y-2.5 min-w-0">
         <!-- Assistant Header -->
-        <div class="flex items-center justify-between text-[12px]">
+        <div class="flex items-center justify-between text-xs">
           <div class="flex items-center gap-2">
             <span class="font-bold tracking-tight text-zinc-900">CHRONOS</span>
-            <span class="px-1.5 py-0.5 rounded text-[10.5px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200/60 font-medium">
+            <span class="px-2 py-0.5 rounded-md text-xs font-mono bg-zinc-100 text-zinc-700 border border-zinc-200/60 font-medium">
               ${escapeHtml(state.activeModel || 'Local')}
             </span>
             ${latencyBadge}
           </div>
-          <div class="text-[11px] text-zinc-400 font-mono">
+          <div class="text-xs text-zinc-400 font-mono">
             ${timeLabel}
           </div>
         </div>
         
         <!-- Assistant Content -->
-        <div class="text-[14.5px] text-zinc-800 leading-[1.68] message-content font-normal break-words space-y-2">
+        <div class="text-sm text-zinc-800 leading-relaxed message-content font-normal break-words space-y-2">
           ${formattedContent}
         </div>
         
         ${cardHtml}
         
         <!-- Assistant Action Footer -->
-        <div class="flex items-center justify-between pt-1.5 border-t border-zinc-100/90 text-[11.5px] text-zinc-400">
-          <div class="flex items-center gap-2.5">
+        <div class="flex items-center justify-between pt-2 border-t border-zinc-100 text-xs text-zinc-500">
+          <div class="flex items-center gap-2">
             <!-- 1-Click Copy -->
-            <button onclick="copyMessageText(this)" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors flex items-center gap-1.5 py-0.5 px-1.5 rounded hover:bg-zinc-100/80" title="Copy response text">
-              <svg class="size-3 text-zinc-400 group-hover:text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <button onclick="copyMessageText(this)" class="hover:text-zinc-950 cursor-pointer font-medium transition-colors flex items-center gap-1.5 h-7 px-2.5 rounded-md hover:bg-zinc-100" title="Copy response text">
+              <svg class="size-3.5 text-zinc-400 group-hover:text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               <span>Copy</span>
             </button>
 
             <!-- Read Aloud Speech Synthesizer -->
-            <button onclick="toggleSpeechSynthesis(this)" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors flex items-center gap-1.5 py-0.5 px-1.5 rounded hover:bg-zinc-100/80" title="Listen to response briefing">
-              <svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+            <button onclick="toggleSpeechSynthesis(this)" class="hover:text-zinc-950 cursor-pointer font-medium transition-colors flex items-center gap-1.5 h-7 px-2.5 rounded-md hover:bg-zinc-100" title="Listen to response briefing">
+              <svg class="size-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
               <span class="speech-label">Read Aloud</span>
             </button>
 
             <!-- Milestone Timeline Jump -->
-            <button onclick="switchView('matrix')" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors flex items-center gap-1.5 py-0.5 px-1.5 rounded hover:bg-zinc-100/80" title="View Milestone Timeline">
-              <svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+            <button onclick="switchView('matrix')" class="hover:text-zinc-950 cursor-pointer font-medium transition-colors flex items-center gap-1.5 h-7 px-2.5 rounded-md hover:bg-zinc-100" title="View Milestone Timeline">
+              <svg class="size-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
               <span>Timeline</span>
             </button>
           </div>
 
           <!-- Micro-Feedback Rating -->
           <div class="flex items-center gap-1">
-            <button onclick="rateMessage(this, 'up')" class="p-1 rounded hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 transition-colors cursor-pointer" title="Helpful response">
+            <button onclick="rateMessage(this, 'up')" class="size-7 flex items-center justify-center rounded-md hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 transition-colors cursor-pointer" title="Helpful response">
               <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
             </button>
-            <button onclick="rateMessage(this, 'down')" class="p-1 rounded hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 transition-colors cursor-pointer" title="Needs improvement">
+            <button onclick="rateMessage(this, 'down')" class="size-7 flex items-center justify-center rounded-md hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 transition-colors cursor-pointer" title="Needs improvement">
               <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
             </button>
           </div>
@@ -558,13 +558,13 @@ function renderResearchCard(meta) {
         </div>
       ` : ''}
 
-      <div class="space-y-2 pt-2 border-t border-zinc-100">
-        <div class="text-[12px] font-semibold text-zinc-600">Quick Track Prioritization:</div>
-        <div class="flex flex-wrap gap-2">
-          <button onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="h-8.5 px-3 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-[12.5px] font-medium text-zinc-800 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+      <div class="space-y-2.5 pt-2 border-t border-zinc-100">
+        <div class="text-xs font-semibold text-zinc-600">Quick Track Prioritization:</div>
+        <div class="flex flex-wrap gap-2.5">
+          <button onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="h-10 px-4 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-xs font-semibold text-zinc-900 transition-colors cursor-pointer flex items-center gap-2 shadow-2xs">
             <span>Track 1: Backend Architecture &amp; Local Agents</span>
           </button>
-          <button onclick="quickSend('Solo builder mode with full-stack UI, Chrome DevTools testing')" class="h-8.5 px-3 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-[12.5px] font-medium text-zinc-800 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+          <button onclick="quickSend('Solo builder mode with full-stack UI, Chrome DevTools testing')" class="h-10 px-4 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-xs font-semibold text-zinc-900 transition-colors cursor-pointer flex items-center gap-2 shadow-2xs">
             <span>Track 2: Full-Stack Interface &amp; Delivery</span>
           </button>
         </div>
@@ -578,28 +578,28 @@ function renderTasksAndMcpsCard(meta) {
   const mcps = meta.mcps || [];
 
   const tasksHtml = tasks.map(t => `
-    <div class="flex items-start gap-3 p-3 rounded-lg border border-zinc-200/80 bg-zinc-50/50 ${t.status === 'done' ? 'opacity-60 line-through' : ''} hover:border-zinc-300 transition-colors">
-      <input type="checkbox" class="accent-zinc-900 size-4 rounded mt-0.5 cursor-pointer shrink-0" ${t.status === 'done' ? 'checked' : ''} onchange="toggleTaskInChat(${t.id}, this.checked)">
+    <div class="flex items-start gap-3 p-3.5 rounded-lg border border-zinc-200 bg-zinc-50/50 ${t.status === 'done' ? 'opacity-60 line-through' : ''} hover:border-zinc-300 transition-colors">
+      <input type="checkbox" class="accent-zinc-900 size-4.5 rounded mt-0.5 cursor-pointer shrink-0" ${t.status === 'done' ? 'checked' : ''} onchange="toggleTaskInChat(${t.id}, this.checked)">
       <div class="flex-1 space-y-1">
-        <div class="text-[13.5px] font-semibold text-zinc-900">${escapeHtml(t.title)}</div>
-        <div class="flex items-center gap-2 text-[12px] text-zinc-500 font-medium">
-          <span class="px-1.5 py-0.5 rounded bg-zinc-200/80 text-zinc-800 font-mono text-[11px]">${escapeHtml(t.phase || '')}</span>
+        <div class="text-sm font-semibold text-zinc-900">${escapeHtml(t.title)}</div>
+        <div class="flex items-center gap-2 text-xs text-zinc-500 font-medium">
+          <span class="px-2 py-0.5 rounded-md bg-zinc-200/80 text-zinc-800 font-mono text-xs font-semibold">${escapeHtml(t.phase || '')}</span>
           <span>Due: ${escapeHtml(t.due_date || 'TBD')}</span>
-          ${t.assigned_mcp ? `<span class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700 font-mono text-[11px]">Tool: ${escapeHtml(t.assigned_mcp)}</span>` : ''}
+          ${t.assigned_mcp ? `<span class="px-2 py-0.5 rounded-md bg-zinc-100 text-zinc-700 font-mono text-xs font-semibold border border-zinc-200">Tool: ${escapeHtml(t.assigned_mcp)}</span>` : ''}
         </div>
       </div>
     </div>
   `).join("");
 
   const mcpsHtml = mcps.slice(0, 3).map(m => `
-    <div class="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 bg-white text-[12.5px]">
-      <div class="flex items-center gap-2 min-w-0">
-        <svg class="size-3.5 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+    <div class="flex items-center justify-between p-3 rounded-lg border border-zinc-200 bg-white text-xs">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <svg class="size-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
         <span class="font-semibold text-zinc-900 truncate">${escapeHtml(m.name)}</span>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <code class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 font-mono text-[11px]">${escapeHtml(m.install_command)}</code>
-        <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-[11px] font-semibold transition-colors cursor-pointer border border-zinc-200">Copy</button>
+        <code class="px-2.5 py-1 rounded-md bg-zinc-100 text-zinc-800 font-mono text-xs border border-zinc-200">${escapeHtml(m.install_command)}</code>
+        <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="h-7 px-2.5 rounded-md bg-zinc-100 hover:bg-zinc-900 hover:text-white text-xs font-semibold transition-colors cursor-pointer border border-zinc-200 flex items-center justify-center">Copy</button>
       </div>
     </div>
   `).join("");
@@ -608,37 +608,37 @@ function renderTasksAndMcpsCard(meta) {
     <div class="rounded-xl border border-zinc-200 bg-white p-5 space-y-4 shadow-2xs hover:border-zinc-300 transition-all">
       <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
         <div class="flex items-center gap-2.5">
-          <span class="size-6 rounded-md bg-zinc-900 text-white flex items-center justify-center shrink-0">
-            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          <span class="size-7 rounded-md bg-zinc-900 text-white flex items-center justify-center shrink-0">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
           </span>
-          <span class="text-[13.5px] font-bold text-zinc-900">
+          <span class="text-sm font-bold text-zinc-900">
             Milestone Deliverables &amp; Toolchain
           </span>
         </div>
-        <button onclick="switchView('matrix')" class="inline-flex items-center gap-1 text-[12px] font-semibold text-zinc-600 hover:text-zinc-900 cursor-pointer transition-colors">
+        <button onclick="switchView('matrix')" class="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-600 hover:text-zinc-900 cursor-pointer transition-colors">
           <span>View Matrix</span>
-          <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
       </div>
 
-      <div class="space-y-2">
+      <div class="space-y-2.5">
         ${tasksHtml}
       </div>
 
       <div class="space-y-2 pt-2 border-t border-zinc-100">
-        <div class="text-[12px] font-semibold text-zinc-500">Configured MCP Tools:</div>
-        <div class="space-y-1.5">
+        <div class="text-xs font-semibold text-zinc-500">Configured MCP Tools:</div>
+        <div class="space-y-2">
           ${mcpsHtml}
         </div>
       </div>
 
-      <div class="flex items-center gap-2 pt-1 border-t border-zinc-100">
-        <button onclick="exportMcpConfig()" class="h-8.5 px-3.5 rounded-lg bg-zinc-900 text-white text-[12.5px] font-semibold hover:bg-zinc-800 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
-          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      <div class="flex items-center gap-2.5 pt-2 border-t border-zinc-100">
+        <button onclick="exportMcpConfig()" class="h-10 px-4 rounded-lg bg-zinc-900 text-white text-xs font-semibold hover:bg-zinc-800 transition-colors cursor-pointer flex items-center gap-2 shadow-2xs">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           <span>Export Config</span>
         </button>
-        <button onclick="switchView('matrix')" class="h-8.5 px-3.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-[12.5px] font-semibold text-zinc-700 transition-colors cursor-pointer flex items-center gap-1.5">
-          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+        <button onclick="switchView('matrix')" class="h-10 px-4 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-xs font-semibold text-zinc-800 transition-colors cursor-pointer flex items-center gap-2">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
           <span>Inspect Timeline</span>
         </button>
       </div>
@@ -649,30 +649,30 @@ function renderTasksAndMcpsCard(meta) {
 function renderBriefingCard(meta) {
   const briefing = meta.briefing || {};
   return `
-    <div class="rounded-xl border border-zinc-200/90 bg-zinc-50/60 p-5 space-y-3 shadow-2xs hover:border-zinc-300 transition-all">
+    <div class="rounded-xl border border-zinc-200/90 bg-zinc-50/60 p-5 space-y-3.5 shadow-2xs hover:border-zinc-300 transition-all">
       <div class="flex items-center justify-between border-b border-zinc-200/60 pb-2.5">
         <div class="flex items-center gap-2.5">
-          <span class="size-6 rounded-md bg-zinc-900 text-white flex items-center justify-center shrink-0">
-            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <span class="size-7 rounded-md bg-zinc-900 text-white flex items-center justify-center shrink-0">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
           </span>
-          <span class="text-[13px] font-bold text-zinc-900">
+          <span class="text-sm font-bold text-zinc-900">
             ${escapeHtml(briefing.header || 'Executive Priority Briefing')}
           </span>
         </div>
-        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
           <svg class="size-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <span>Active</span>
         </span>
       </div>
 
-      <div class="text-[14px] font-medium text-zinc-900 leading-relaxed">
+      <div class="text-sm font-medium text-zinc-900 leading-relaxed">
         ${escapeHtml(briefing.message || '')}
       </div>
 
       <div class="pt-1">
-        <button onclick="switchView('matrix')" class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer">
+        <button onclick="switchView('matrix')" class="h-9 px-3.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-xs font-semibold text-zinc-800 inline-flex items-center gap-2 transition-colors cursor-pointer">
           <span>Inspect Milestone Timeline</span>
-          <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
       </div>
     </div>
@@ -1395,16 +1395,16 @@ function filterTaskConsole() {
           </div>
           
           <div class="flex items-center gap-2">
-            <select onchange="updateTaskStatusFromConsole(${t.id}, this.value)" class="h-8 px-2.5 rounded-lg border border-zinc-200 bg-white text-[12px] font-semibold text-zinc-800 cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-950">
+            <select onchange="updateTaskStatusFromConsole(${t.id}, this.value)" class="h-9 px-3 rounded-lg border border-zinc-200 bg-white text-xs font-semibold text-zinc-800 cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-950">
               <option value="pending" ${t.status === 'pending' ? 'selected' : ''}>Pending</option>
               <option value="in_progress" ${isInProgress ? 'selected' : ''}>In Progress</option>
               <option value="done" ${isDone ? 'selected' : ''}>Completed</option>
             </select>
-            <button onclick="openTaskEditModal(${t.id})" title="Edit Task" class="size-8 rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-600 flex items-center justify-center cursor-pointer transition-colors">
-              <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <button onclick="openTaskEditModal(${t.id})" title="Edit Task" class="size-9 rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-600 flex items-center justify-center cursor-pointer transition-colors">
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </button>
-            <button onclick="deleteTaskFromConsole(${t.id})" title="Delete Task" class="size-8 rounded-lg border border-zinc-200 hover:bg-rose-50 text-zinc-400 hover:text-rose-600 flex items-center justify-center cursor-pointer transition-colors">
-              <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <button onclick="deleteTaskFromConsole(${t.id})" title="Delete Task" class="size-9 rounded-lg border border-zinc-200 hover:bg-rose-50 text-zinc-400 hover:text-rose-600 flex items-center justify-center cursor-pointer transition-colors">
+              <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           </div>
         </div>
@@ -1542,11 +1542,11 @@ function renderAgentToolsCatalog() {
       const defaultValue = paramDef.default !== undefined ? paramDef.default : "";
       return `
         <div class="space-y-1">
-          <div class="flex items-center justify-between text-[11px] font-mono text-zinc-500 font-bold">
+          <div class="flex items-center justify-between text-xs font-mono text-zinc-500 font-semibold">
             <span>${escapeHtml(paramName)} (${paramDef.type})</span>
-            <span class="text-zinc-400">${paramDef.description || ''}</span>
+            <span class="text-zinc-400 font-normal">${paramDef.description || ''}</span>
           </div>
-          <input type="text" id="param-${tool.id}-${paramName}" value="${escapeHtml(defaultValue)}" class="w-full h-8 px-2.5 rounded border border-[#e4e4e7] bg-zinc-50 text-[12px] font-mono font-bold text-[#111] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#111]">
+          <input type="text" id="param-${tool.id}-${paramName}" value="${escapeHtml(defaultValue)}" class="w-full h-9 px-3 rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-mono font-semibold text-zinc-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900">
         </div>
       `;
     }).join("");
@@ -1557,27 +1557,27 @@ function renderAgentToolsCatalog() {
         <div class="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-[14.5px] font-semibold text-zinc-900">${escapeHtml(tool.name)}</span>
-              <span class="px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-zinc-100 text-zinc-700">v${tool.version}</span>
+              <span class="text-sm font-bold text-zinc-900">${escapeHtml(tool.name)}</span>
+              <span class="px-2 py-0.5 rounded-md text-xs font-mono font-semibold bg-zinc-100 text-zinc-700">v${tool.version}</span>
             </div>
-            <div class="text-[11.5px] font-mono text-zinc-500 mt-0.5">${escapeHtml(tool.category)}</div>
+            <div class="text-xs font-mono text-zinc-500 mt-0.5">${escapeHtml(tool.category)}</div>
           </div>
-          <div class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-medium ${diagnostic && diagnostic.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-zinc-100 text-zinc-700'}">
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-semibold ${diagnostic && diagnostic.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-zinc-100 text-zinc-700'}">
             ${diagnostic && diagnostic.success 
-              ? `<svg class="size-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>` 
-              : `<span class="size-1.5 rounded-full bg-zinc-400"></span>`}
+              ? `<svg class="size-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>` 
+              : `<span class="size-2 rounded-full bg-zinc-400"></span>`}
             <span>${statusText}</span>
           </div>
         </div>
 
         <!-- Description conforming to agent-tool-builder specs -->
-        <p class="text-[12.5px] text-zinc-600 leading-relaxed">
+        <p class="text-xs text-zinc-600 leading-relaxed font-normal">
           ${escapeHtml(tool.description)}
         </p>
 
         <!-- Parameters Schema -->
         <div class="space-y-2 pt-1 border-t border-zinc-100">
-          <div class="text-[11px] font-medium text-zinc-400">Schema Parameters:</div>
+          <div class="text-xs font-semibold text-zinc-400">Schema Parameters:</div>
           <div class="space-y-2">
             ${paramInputs}
           </div>
@@ -1585,11 +1585,11 @@ function renderAgentToolsCatalog() {
 
         <!-- Action Runner -->
         <div class="flex items-center justify-between pt-1">
-          <button onclick="runToolDiagnostic('${tool.id}')" id="btn-test-${tool.id}" class="h-8.5 px-3.5 rounded-lg bg-zinc-900 text-white text-[12.5px] font-medium hover:bg-zinc-800 transition-colors flex items-center gap-1.5 cursor-pointer">
-            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <button onclick="runToolDiagnostic('${tool.id}')" id="btn-test-${tool.id}" class="h-10 px-4 rounded-lg bg-zinc-900 text-white text-xs font-semibold hover:bg-zinc-800 transition-colors flex items-center gap-2 cursor-pointer shadow-2xs">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             <span>Run Diagnostic</span>
           </button>
-          <span class="text-[11.5px] font-mono text-zinc-400" id="latency-${tool.id}">Latency: ${latencyText}</span>
+          <span class="text-xs font-mono text-zinc-500 font-medium" id="latency-${tool.id}">Latency: ${latencyText}</span>
         </div>
 
         <!-- Expandable Execution Output -->
@@ -1861,8 +1861,8 @@ function renderFullMcps() {
           <code class="flex-1 text-[12px] font-mono px-2.5 py-1.5 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-800 truncate select-all">
             ${escapeHtml(m.install_command)}
           </code>
-          <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="h-8 px-3 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-[12px] font-medium transition-colors cursor-pointer shrink-0 flex items-center gap-1.5">
-            <svg class="size-3 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="h-9 px-3.5 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800 text-xs font-semibold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5">
+            <svg class="size-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             <span>Copy</span>
           </button>
         </div>
@@ -2158,10 +2158,10 @@ function handleChatInputChange() {
   const hasText = input.value.trim().length > 0;
   if (hasText && !state.isProcessing) {
     btn.disabled = false;
-    btn.className = "absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-2xs";
+    btn.className = "absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 w-[42px] h-[42px] rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-xs group";
   } else {
     btn.disabled = true;
-    btn.className = "absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-zinc-100 text-zinc-400 transition-all flex items-center justify-center cursor-not-allowed";
+    btn.className = "absolute right-2 sm:right-2.5 top-1/2 -translate-y-1/2 w-[42px] h-[42px] rounded-xl bg-zinc-100 text-zinc-400 transition-all flex items-center justify-center cursor-not-allowed group";
   }
 }
 

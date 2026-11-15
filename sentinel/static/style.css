@@ -31,7 +31,16 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-html, body {
+html {
+  font-size: 16px;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+}
+
+body {
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -115,12 +124,13 @@ html, body {
 .nav-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
   width: 100%;
-  padding: 0.55rem 0.75rem;
+  min-height: 40px;
+  padding: 0.6rem 0.85rem;
   border-radius: 8px;
   font-weight: 500;
-  font-size: 13.5px;
+  font-size: 14px;
   color: #52525b;
   transition: all 0.15s ease;
   border: 1px solid transparent;
@@ -379,8 +389,12 @@ html, body {
 
 /* Filter Pill Controls */
 .filter-btn {
-  padding: 0.35rem 0.75rem;
-  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
   color: #71717a;

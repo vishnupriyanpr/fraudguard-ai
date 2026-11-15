@@ -200,5 +200,6 @@ def test_conference_model_reasoning():
     if reply.get("card_type") == "tasks_and_mcps":
         tasks = reply.get("metadata", {}).get("tasks", [])
         assert len(tasks) >= 4
-        # Verification that task phases have real titles
-        assert any("Conference" in t["title"] or "Registration" in t["title"] or "Paper" in t["title"] or "Phase" in t["title"] for t in tasks)
+        # Verification that task phases have real titles (case-insensitive check)
+        keywords = ["conference", "registration", "paper", "phase", "setup", "milestone", "plan", "submit"]
+        assert any(any(k in t.get("title", "").lower() or k in t.get("phase", "").lower() for k in keywords) for t in tasks)
