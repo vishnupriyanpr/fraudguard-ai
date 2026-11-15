@@ -424,7 +424,7 @@ function renderMessageHtml(msg) {
   if (isUser) {
     return `
       <div class="flex justify-end animate-fadeIn my-5">
-        <div class="max-w-xl rounded-2xl rounded-tr-xs bg-zinc-900 text-white px-4 py-3 text-[14px] leading-relaxed shadow-2xs">
+        <div class="max-w-xl rounded-2xl rounded-tr-xs bg-zinc-900 text-white px-4.5 py-3 text-[14px] leading-relaxed shadow-2xs">
           ${formattedContent}
         </div>
       </div>
@@ -441,43 +441,83 @@ function renderMessageHtml(msg) {
   } else if (msg.card_type === "channel_connect_trigger") {
     cardHtml = `
       <div class="pt-2">
-        <button onclick="switchView('connectors')" class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg bg-zinc-900 text-white text-[13px] font-medium hover:bg-zinc-800 transition-colors cursor-pointer">
+        <button onclick="switchView('connectors')" class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg bg-zinc-900 text-white text-[13px] font-medium hover:bg-zinc-800 transition-colors cursor-pointer shadow-2xs">
+          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
           <span>Configure Integrations</span>
         </button>
       </div>
     `;
   }
 
+  const timeLabel = msg.created_at ? formatMessageTime(msg.created_at) : 'Just now';
+  const latencyBadge = msg.latency ? `
+    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10.5px] font-mono text-zinc-500 bg-zinc-100 border border-zinc-200/70">
+      <svg class="size-2.5 text-amber-500 fill-amber-500" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      ${escapeHtml(msg.latency)}
+    </span>
+  ` : '';
+
   return `
-    <div class="flex items-start gap-3.5 max-w-3xl animate-fadeIn my-5 group">
-      <!-- Branded Monogram Avatar -->
-      <div class="size-7 rounded-lg bg-zinc-950 flex items-center justify-center text-white shrink-0 mt-0.5 font-bold font-sans text-xs tracking-tight shadow-2xs select-none">
-        C
+    <div class="flex items-start gap-3.5 max-w-3xl animate-fadeIn my-6 group" data-msg-id="${escapeHtml(String(msg.id || ''))}">
+      <!-- Branded Monogram Avatar with Active Status Indicator -->
+      <div class="relative size-7 rounded-lg bg-zinc-950 flex items-center justify-center text-white shrink-0 mt-0.5 font-bold font-sans text-xs tracking-tight shadow-2xs select-none">
+        <span>C</span>
+        <span class="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 ring-2 ring-white"></span>
       </div>
+
       <div class="flex-1 space-y-2.5 min-w-0">
         <!-- Assistant Header -->
-        <div class="flex items-center gap-2 text-[12px]">
-          <span class="font-bold tracking-tight text-zinc-900">CHRONOS</span>
-          <span class="px-1.5 py-0.2 rounded text-[10.5px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200/60 font-medium">${escapeHtml(state.activeModel || 'Local')}</span>
+        <div class="flex items-center justify-between text-[12px]">
+          <div class="flex items-center gap-2">
+            <span class="font-bold tracking-tight text-zinc-900">CHRONOS</span>
+            <span class="px-1.5 py-0.5 rounded text-[10.5px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200/60 font-medium">
+              ${escapeHtml(state.activeModel || 'Local')}
+            </span>
+            ${latencyBadge}
+          </div>
+          <div class="text-[11px] text-zinc-400 font-mono">
+            ${timeLabel}
+          </div>
         </div>
         
         <!-- Assistant Content -->
-        <div class="text-[14.5px] text-zinc-800 leading-[1.65] message-content font-normal break-words">
+        <div class="text-[14.5px] text-zinc-800 leading-[1.68] message-content font-normal break-words space-y-2">
           ${formattedContent}
         </div>
         
         ${cardHtml}
         
         <!-- Assistant Action Footer -->
-        <div class="flex items-center gap-3 pt-1 text-[11.5px] text-zinc-400">
-          <button onclick="copyMessageText(this)" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors flex items-center gap-1">
-            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-            <span>Copy</span>
-          </button>
-          <span>·</span>
-          <button onclick="switchView('matrix')" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors">
-            Timeline
-          </button>
+        <div class="flex items-center justify-between pt-1.5 border-t border-zinc-100/90 text-[11.5px] text-zinc-400">
+          <div class="flex items-center gap-2.5">
+            <!-- 1-Click Copy -->
+            <button onclick="copyMessageText(this)" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors flex items-center gap-1.5 py-0.5 px-1.5 rounded hover:bg-zinc-100/80" title="Copy response text">
+              <svg class="size-3 text-zinc-400 group-hover:text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy</span>
+            </button>
+
+            <!-- Read Aloud Speech Synthesizer -->
+            <button onclick="toggleSpeechSynthesis(this)" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors flex items-center gap-1.5 py-0.5 px-1.5 rounded hover:bg-zinc-100/80" title="Listen to response briefing">
+              <svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+              <span class="speech-label">Read Aloud</span>
+            </button>
+
+            <!-- Milestone Timeline Jump -->
+            <button onclick="switchView('matrix')" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors flex items-center gap-1.5 py-0.5 px-1.5 rounded hover:bg-zinc-100/80" title="View Milestone Timeline">
+              <svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+              <span>Timeline</span>
+            </button>
+          </div>
+
+          <!-- Micro-Feedback Rating -->
+          <div class="flex items-center gap-1">
+            <button onclick="rateMessage(this, 'up')" class="p-1 rounded hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 transition-colors cursor-pointer" title="Helpful response">
+              <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+            </button>
+            <button onclick="rateMessage(this, 'down')" class="p-1 rounded hover:bg-zinc-100 text-zinc-400 hover:text-zinc-800 transition-colors cursor-pointer" title="Needs improvement">
+              <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -485,6 +525,11 @@ function renderMessageHtml(msg) {
 }
 
 function renderResearchCard(meta) {
+  const tracks = meta.tracks || [];
+  const tracksHtml = tracks.length > 0 
+    ? tracks.map(t => `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11.5px] font-medium bg-zinc-100 text-zinc-800 border border-zinc-200/80">${escapeHtml(t)}</span>`).join(" ")
+    : '';
+
   return `
     <div class="rounded-xl border border-zinc-200 bg-white p-5 space-y-4 shadow-2xs hover:border-zinc-300 transition-all">
       <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
@@ -496,23 +541,31 @@ function renderResearchCard(meta) {
             Event Scope &amp; Target Rubric
           </span>
         </div>
-        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-100 text-zinc-700 border border-zinc-200">
-          Parsed
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+          <svg class="size-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>Verified</span>
         </span>
       </div>
 
-      <p class="text-[14px] text-zinc-700 leading-relaxed font-medium">
+      <p class="text-[14px] text-zinc-700 leading-relaxed font-normal">
         ${escapeHtml(meta.summary || '')}
       </p>
 
-      <div class="space-y-2 pt-1 border-t border-zinc-100">
-        <div class="text-[12px] font-semibold text-zinc-500">Suggested Action Tracks:</div>
+      ${tracksHtml ? `
+        <div class="space-y-1.5 pt-1">
+          <div class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider font-mono">Scoped Tracks:</div>
+          <div class="flex flex-wrap gap-1.5">${tracksHtml}</div>
+        </div>
+      ` : ''}
+
+      <div class="space-y-2 pt-2 border-t border-zinc-100">
+        <div class="text-[12px] font-semibold text-zinc-600">Quick Track Prioritization:</div>
         <div class="flex flex-wrap gap-2">
-          <button onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="h-8 px-3 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-[12.5px] font-medium text-zinc-800 transition-colors cursor-pointer">
-            Track 1: Backend Architecture &amp; Local Agents
+          <button onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="h-8.5 px-3 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-[12.5px] font-medium text-zinc-800 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+            <span>Track 1: Backend Architecture &amp; Local Agents</span>
           </button>
-          <button onclick="quickSend('Solo builder mode with full-stack UI, Chrome DevTools testing')" class="h-8 px-3 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-[12.5px] font-medium text-zinc-800 transition-colors cursor-pointer">
-            Track 2: Full-Stack Interface &amp; Delivery
+          <button onclick="quickSend('Solo builder mode with full-stack UI, Chrome DevTools testing')" class="h-8.5 px-3 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-[12.5px] font-medium text-zinc-800 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+            <span>Track 2: Full-Stack Interface &amp; Delivery</span>
           </button>
         </div>
       </div>
@@ -540,8 +593,11 @@ function renderTasksAndMcpsCard(meta) {
 
   const mcpsHtml = mcps.slice(0, 3).map(m => `
     <div class="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 bg-white text-[12.5px]">
-      <span class="font-semibold text-zinc-900">${escapeHtml(m.name)}</span>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <svg class="size-3.5 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+        <span class="font-semibold text-zinc-900 truncate">${escapeHtml(m.name)}</span>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
         <code class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 font-mono text-[11px]">${escapeHtml(m.install_command)}</code>
         <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-[11px] font-semibold transition-colors cursor-pointer border border-zinc-200">Copy</button>
       </div>
@@ -577,11 +633,13 @@ function renderTasksAndMcpsCard(meta) {
       </div>
 
       <div class="flex items-center gap-2 pt-1 border-t border-zinc-100">
-        <button onclick="exportMcpConfig()" class="h-8 px-3.5 rounded-lg bg-zinc-900 text-white text-[12.5px] font-semibold hover:bg-zinc-800 transition-colors cursor-pointer">
-          Export Config
+        <button onclick="exportMcpConfig()" class="h-8.5 px-3.5 rounded-lg bg-zinc-900 text-white text-[12.5px] font-semibold hover:bg-zinc-800 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs">
+          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Export Config</span>
         </button>
-        <button onclick="switchView('connectors')" class="h-8 px-3.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-[12.5px] font-semibold text-zinc-700 transition-colors cursor-pointer">
-          Alert Connectors
+        <button onclick="switchView('matrix')" class="h-8.5 px-3.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-[12.5px] font-semibold text-zinc-700 transition-colors cursor-pointer flex items-center gap-1.5">
+          <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+          <span>Inspect Timeline</span>
         </button>
       </div>
     </div>
@@ -603,7 +661,7 @@ function renderBriefingCard(meta) {
         </div>
         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
           <svg class="size-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-          Active
+          <span>Active</span>
         </span>
       </div>
 
@@ -621,7 +679,7 @@ function renderBriefingCard(meta) {
   `;
 }
 
-// ── Sending Messages (Instant Visible Feedback, Zero Refresh Needed) ──
+// ── Sending Messages & Interactive Handlers ────────────────────────────
 
 function copyMessageText(btn) {
   const bubble = btn.closest(".group");
@@ -630,11 +688,76 @@ function copyMessageText(btn) {
   if (!text) return;
 
   navigator.clipboard.writeText(text).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = "Copied!";
-    showToast("Message copied to clipboard", "info", 1500);
-    setTimeout(() => { btn.textContent = orig; }, 1800);
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = `
+      <svg class="size-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <span class="text-emerald-700 font-medium">Copied</span>
+    `;
+    showToast("Response copied to clipboard", "info", 1500);
+    setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
   });
+}
+
+let activeSpeechUtterance = null;
+function toggleSpeechSynthesis(btn) {
+  if (!('speechSynthesis' in window)) {
+    showToast("Speech synthesis not supported in this browser", "info");
+    return;
+  }
+  const label = btn.querySelector(".speech-label");
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    if (label) label.textContent = "Read Aloud";
+    btn.classList.remove("text-zinc-900", "font-semibold");
+    return;
+  }
+  const bubble = btn.closest(".group");
+  const contentEl = bubble ? bubble.querySelector(".message-content") : null;
+  const text = contentEl ? contentEl.innerText.trim() : "";
+  if (!text) return;
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 1.0;
+  utter.onstart = () => {
+    if (label) label.textContent = "Stop Audio";
+    btn.classList.add("text-zinc-900", "font-semibold");
+  };
+  utter.onend = () => {
+    if (label) label.textContent = "Read Aloud";
+    btn.classList.remove("text-zinc-900", "font-semibold");
+  };
+  utter.onerror = () => {
+    if (label) label.textContent = "Read Aloud";
+    btn.classList.remove("text-zinc-900", "font-semibold");
+  };
+  activeSpeechUtterance = utter;
+  window.speechSynthesis.speak(utter);
+}
+
+function rateMessage(btn, type) {
+  const parent = btn.parentElement;
+  if (!parent) return;
+  parent.querySelectorAll("button").forEach(b => {
+    b.classList.remove("text-emerald-600", "text-rose-600", "bg-zinc-100", "bg-emerald-50", "bg-rose-50");
+  });
+  if (type === "up") {
+    btn.classList.add("text-emerald-600", "bg-emerald-50");
+    showToast("Feedback recorded: helpful response", "info", 1500);
+  } else {
+    btn.classList.add("text-rose-600", "bg-rose-50");
+    showToast("Feedback recorded: refining formatting", "info", 1500);
+  }
+}
+
+function formatMessageTime(isoStr) {
+  if (!isoStr) return "Just now";
+  try {
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return "Just now";
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    return "Just now";
+  }
 }
 
 async function handleSend(e) {
@@ -716,6 +839,8 @@ async function handleSend(e) {
 
     const data = await res.json();
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    data.latency = `${elapsed}s`;
+    data.created_at = new Date().toISOString();
 
     // Remove thinking bubble immediately
     const tb = document.getElementById("thinking-bubble");
@@ -1843,50 +1968,123 @@ function formatMarkdown(text) {
     return placeholder;
   });
 
-  // 2. Escape HTML on prose
+  // 2. Extract markdown tables so pipe characters and formatting are preserved
+  const tables = [];
+  processed = processed.replace(/(?:^|\n)(\|[^\n]+\|\r?\n\|[\s\-:|]+\|\r?\n(?:\|[^\n]+\|\r?\n?)*)/g, (match, tableBlock) => {
+    const placeholder = `__CHRONOS_TABLE_${tables.length}__`;
+    tables.push(tableBlock.trim());
+    return "\n" + placeholder + "\n";
+  });
+
+  // 3. Escape HTML on prose
   let html = escapeHtml(processed);
 
-  // 3. Headings (#, ##, ###)
+  // 4. GitHub-style Alert Callouts (> [!NOTE], > [!TIP], > [!WARNING], > [!IMPORTANT])
+  html = html.replace(/^&gt;\s*\[!(NOTE|INFO|TIP|WARNING|IMPORTANT|CAUTION)\]\s*(.*)$/gm, (match, type, title) => {
+    const t = type.toUpperCase();
+    let badge = "Note";
+    let icon = `<svg class="size-3.5 text-zinc-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+    if (t === "TIP") {
+      badge = "Tip";
+      icon = `<svg class="size-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v1M12 21v1M4.22 4.22l.71.71M19.07 19.07l.71.71M2 12h1M21 12h1M4.22 19.78l.71-.71M19.07 4.93l.71-.71"></path><circle cx="12" cy="12" r="6"></circle></svg>`;
+    } else if (t === "WARNING" || t === "CAUTION") {
+      badge = "Warning";
+      icon = `<svg class="size-3.5 text-amber-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
+    } else if (t === "IMPORTANT") {
+      badge = "Important";
+      icon = `<svg class="size-3.5 text-zinc-900 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+    }
+    const cleanTitle = title ? `<span class="text-zinc-600 font-normal ml-1">· ${title.trim()}</span>` : '';
+    return `<div class="md-alert"><div class="md-alert-header">${icon}<span>${badge}</span>${cleanTitle}</div><div class="md-alert-body">`;
+  });
+
+  // 5. Blockquotes (> text) with clean full rounded border (zero side dashes)
+  html = html.replace(/^&gt;\s+(.*)$/gm, '<div class="my-2.5 rounded-lg border border-zinc-200 bg-zinc-50/70 px-3.5 py-2 text-[13.5px] text-zinc-700 italic">$1</div>');
+
+  // 6. Checkbox lists (- [ ] and - [x])
+  html = html.replace(/^[-*]\s+\[ \]\s+(.*)$/gm, '<div class="flex items-start gap-2.5 my-1.5"><span class="size-4 rounded border border-zinc-300 bg-white shrink-0 mt-0.5"></span><span class="text-zinc-800 text-[14px] leading-relaxed flex-1">$1</span></div>');
+  html = html.replace(/^[-*]\s+\[x\]\s+(.*)$/gm, '<div class="flex items-start gap-2.5 my-1.5"><span class="size-4 rounded bg-zinc-900 text-white flex items-center justify-center shrink-0 mt-0.5"><svg class="size-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span class="text-zinc-500 line-through text-[14px] leading-relaxed flex-1">$1</span></div>');
+
+  // 7. Headings (#, ##, ###)
   html = html.replace(/^###\s+(.*)$/gm, '<h4 class="text-[14.5px] font-bold text-zinc-900 mt-3 mb-1 tracking-tight">$1</h4>');
   html = html.replace(/^##\s+(.*)$/gm, '<h3 class="text-[15.5px] font-bold text-zinc-950 mt-3.5 mb-1.5 tracking-tight">$1</h3>');
   html = html.replace(/^#\s+(.*)$/gm, '<h2 class="text-[17px] font-black text-zinc-950 mt-4 mb-2 tracking-tight">$1</h2>');
 
-  // 4. Blockquotes (> text)
-  html = html.replace(/^>\s+(.*)$/gm, '<div class="border-l-2 border-zinc-300 pl-3.5 py-1 my-2 text-[13.5px] text-zinc-600 italic bg-zinc-50/60 rounded-r-md leading-relaxed">$1</div>');
+  // 8. Horizontal dividers (--- or ***)
+  html = html.replace(/^(?:---|___|\*\*\*)\s*$/gm, '<hr class="my-3.5 border-t border-zinc-200" />');
 
-  // 5. Bold & Italic
+  // 9. Bold & Italic
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-zinc-950">$1</strong>');
   html = html.replace(/\*(.*?)\*/g, '<em class="italic text-zinc-800">$1</em>');
 
-  // 6. Inline Code (`code`)
+  // 10. Inline Code (`code`)
   html = html.replace(/`(.*?)`/g, '<code class="font-mono text-[12px] bg-zinc-100 text-zinc-800 border border-zinc-200/80 px-1.5 py-0.5 rounded font-medium">$1</code>');
 
-  // 7. Markdown links [text](url)
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-zinc-900 underline underline-offset-2 hover:text-black font-medium transition-colors">$1</a>');
+  // 11. Markdown links [text](url) with external link icon
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-zinc-900 underline underline-offset-3 hover:text-black font-medium transition-colors">$1<svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg></a>');
 
-  // 8. Numbered list items (1. item)
+  // 12. Numbered list items (1. item)
   html = html.replace(/^(\d+)\.\s+(.*)$/gm, '<div class="flex items-start gap-2.5 my-1.5"><span class="shrink-0 font-mono text-[11px] font-semibold text-zinc-500 bg-zinc-100 rounded px-1.5 py-0.5 border border-zinc-200/60 mt-0.5">$1</span><span class="text-zinc-800 text-[14px] leading-relaxed font-normal flex-1">$2</span></div>');
 
-  // 9. Bullet list items (- item or * item)
+  // 13. Bullet list items (- item or * item)
   html = html.replace(/^[-*]\s+(.*)$/gm, '<div class="flex items-start gap-2.5 my-1.5"><span class="size-1.5 rounded-full bg-zinc-400 mt-2 shrink-0"></span><span class="text-zinc-800 text-[14px] leading-relaxed font-normal flex-1">$1</span></div>');
 
-  // 10. Paragraphs & Line breaks
+  // 14. Paragraphs & Line breaks
   html = html.replace(/\n\n/g, '<div class="h-2.5"></div>');
   html = html.replace(/\n/g, '<br>');
 
-  // 11. Restore code blocks with syntax styled card and 1-click copy
+  // 15. Restore Tables
+  tables.forEach((tStr, idx) => {
+    const lines = tStr.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length >= 2) {
+      const headers = lines[0].split("|").slice(1, -1).map(h => h.trim());
+      const rows = lines.slice(2).map(l => l.split("|").slice(1, -1).map(c => c.trim()));
+      let tableHtml = `<div class="my-3.5 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-2xs"><table class="w-full text-left text-[13px] border-collapse"><thead><tr class="border-b border-zinc-200 bg-zinc-50/80 text-zinc-900 font-semibold">`;
+      headers.forEach(h => {
+        tableHtml += `<th class="py-2 px-3 border-r border-zinc-100 last:border-r-0">${escapeHtml(h)}</th>`;
+      });
+      tableHtml += `</tr></thead><tbody class="divide-y divide-zinc-100 text-zinc-700">`;
+      rows.forEach(r => {
+        tableHtml += `<tr class="hover:bg-zinc-50/60 transition-colors">`;
+        r.forEach(c => {
+          tableHtml += `<td class="py-2 px-3 border-r border-zinc-100 last:border-r-0">${escapeHtml(c)}</td>`;
+        });
+        tableHtml += `</tr>`;
+      });
+      tableHtml += `</tbody></table></div>`;
+      html = html.replace(`__CHRONOS_TABLE_${idx}__`, tableHtml);
+    } else {
+      html = html.replace(`__CHRONOS_TABLE_${idx}__`, escapeHtml(tStr));
+    }
+  });
+
+  // 16. Restore code blocks with language badges, icons, and reactive copy
   codeBlocks.forEach((b, idx) => {
     const escapedCode = escapeHtml(b.code);
+    const lang = (b.lang || "shell").toLowerCase();
+
+    let langIcon = `<svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>`;
+    if (["json", "js", "ts", "javascript", "typescript"].includes(lang)) {
+      langIcon = `<svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
+    } else if (["sql", "sqlite", "gsql"].includes(lang)) {
+      langIcon = `<svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>`;
+    } else if (["python", "py"].includes(lang)) {
+      langIcon = `<svg class="size-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+    }
+
     const card = `
-      <div class="my-3 rounded-xl border border-zinc-200 bg-zinc-950 text-zinc-100 overflow-hidden text-[12.5px] font-mono shadow-2xs">
+      <div class="my-3.5 rounded-xl border border-zinc-800 bg-zinc-950 text-zinc-100 overflow-hidden text-[12.5px] font-mono shadow-2xs">
         <div class="flex items-center justify-between px-3.5 py-1.5 bg-zinc-900 border-b border-zinc-800 text-[11px] text-zinc-400">
-          <span class="font-medium lowercase">${escapeHtml(b.lang)}</span>
-          <button onclick="copyPreCode(this)" class="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-sans">
+          <div class="flex items-center gap-1.5 font-medium">
+            ${langIcon}
+            <span class="font-mono lowercase text-zinc-300">${escapeHtml(lang)}</span>
+          </div>
+          <button onclick="copyPreCode(this)" class="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-sans text-zinc-300 px-2 py-0.5 rounded hover:bg-zinc-800">
             <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             <span>Copy</span>
           </button>
         </div>
-        <pre class="p-3.5 overflow-x-auto leading-relaxed text-[12px]"><code class="text-zinc-200 font-mono">${escapedCode}</code></pre>
+        <pre class="p-3.5 overflow-x-auto leading-relaxed text-[12.5px]"><code class="text-zinc-200 font-mono">${escapedCode}</code></pre>
       </div>
     `;
     html = html.replace(`__CHRONOS_CODE_BLOCK_${idx}__`, card);
@@ -1896,13 +2094,16 @@ function formatMarkdown(text) {
 }
 
 function copyPreCode(btn) {
-  const container = btn.closest(".my-3");
+  const container = btn.closest(".my-3\\.5, .my-3");
   const codeEl = container ? container.querySelector("code") : null;
   const text = codeEl ? codeEl.innerText : "";
   if (!text) return;
   navigator.clipboard.writeText(text).then(() => {
     const orig = btn.innerHTML;
-    btn.innerHTML = `<span class="text-emerald-400">Copied!</span>`;
+    btn.innerHTML = `
+      <svg class="size-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <span class="text-emerald-400 font-medium font-sans">Copied</span>
+    `;
     showToast("Code copied to clipboard", "info", 1500);
     setTimeout(() => { btn.innerHTML = orig; }, 2000);
   });

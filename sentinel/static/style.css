@@ -212,11 +212,82 @@ html, body {
   color: #09090b;
 }
 
+.message-content pre code {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  color: #e4e4e7 !important;
+}
+
 .message-content p {
   margin-bottom: 0.65rem;
 }
 .message-content p:last-child {
   margin-bottom: 0;
+}
+
+/* Markdown Tables (Clean Shadcn Style, Border-Collapse) */
+.message-content table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+  margin: 0.85rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e4e4e7;
+}
+.message-content th {
+  background-color: #fafafa;
+  color: #18181b;
+  font-weight: 600;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid #e4e4e7;
+  border-right: 1px solid #f4f4f5;
+  font-size: 12.5px;
+}
+.message-content th:last-child {
+  border-right: none;
+}
+.message-content td {
+  padding: 0.55rem 0.85rem;
+  color: #27272a;
+  border-bottom: 1px solid #f4f4f5;
+  border-right: 1px solid #f4f4f5;
+  font-size: 13px;
+}
+.message-content td:last-child {
+  border-right: none;
+}
+.message-content tr:last-child td {
+  border-bottom: none;
+}
+.message-content tr:hover td {
+  background-color: #fafafa;
+}
+
+/* Markdown Alerts & Callouts (No Side Dashes, Full Neutral Border) */
+.md-alert {
+  border-radius: 10px;
+  border: 1px solid #e4e4e7;
+  background-color: #fafafa;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}
+.md-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  font-weight: 650;
+  color: #18181b;
+  margin-bottom: 0.35rem;
+}
+.md-alert-body {
+  font-size: 13.5px;
+  color: #3f3f46;
+  line-height: 1.6;
 }
 
 /* Interaction transitions */
