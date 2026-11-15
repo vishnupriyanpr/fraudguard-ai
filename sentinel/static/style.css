@@ -1,22 +1,25 @@
 /* ==========================================================================
-   CHRONOS // EDITORIAL MINIMALIST COMMAND DECK
-   Aesthetic: Pure White, Off-Black (#111), Crisp Zinc Dividers
-   Typography: Satoshi Bold Everywhere | Minimum 14px Text Floor | JetBrains Mono Data
+   CHRONOS // REFINED MINIMALIST DESIGN SYSTEM
+   Inspired by Shadcn UI, Linear, and StyleSeed
+   Palette: Clean Zinc Neutral (bg: #ffffff, text: #09090b, border: #e4e4e7)
+   Typography: Satoshi & JetBrains Mono with proportional hierarchical scaling
+   Zero Side Color Dashes | Anti-AI Natural Product Feel
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,800,900&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700,800,900&display=swap');
 
 :root {
-  --font-sans: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   
   --bg-canvas: #ffffff;
   --bg-surface: #fafafa;
   --bg-muted: #f4f4f5;
   --border-subtle: #e4e4e7;
+  --border-muted: #f4f4f5;
   --border-bold: #18181b;
-  --text-primary: #111111;
+  --text-primary: #09090b;
   --text-secondary: #52525b;
   --text-muted: #71717a;
 }
@@ -32,16 +35,10 @@ html, body {
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-weight: 700;
   font-size: 14px;
   line-height: 1.5;
   margin: 0;
   padding: 0;
-}
-
-/* Enforce Minimum 14px Font Floor Across All Elements */
-p, span, div, button, input, select, label, code, pre, a, li {
-  font-size: max(14px, 1em);
 }
 
 .font-mono, code, kbd, select.font-mono {
@@ -50,8 +47,8 @@ p, span, div, button, input, select, label, code, pre, a, li {
 
 /* Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -61,18 +58,18 @@ p, span, div, button, input, select, label, code, pre, a, li {
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  background: #d4d4d8;
 }
 
-/* Animations */
+/* Subtle Fade In Animation */
 .animate-fadeIn {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -80,33 +77,38 @@ p, span, div, button, input, select, label, code, pre, a, li {
   }
 }
 
-/* Navigation Button States */
+/* Navigation Button States (Shadcn Ghost / Subtle Active) */
 .nav-btn {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.65rem 0.85rem;
+  padding: 0.55rem 0.75rem;
   border-radius: 8px;
-  font-weight: 700;
+  font-weight: 500;
+  font-size: 13.5px;
   color: #52525b;
   transition: all 0.15s ease;
   border: 1px solid transparent;
+  background: transparent;
 }
 
 .nav-btn:hover {
   background-color: #f4f4f5;
-  color: #111111;
+  color: #09090b;
 }
 
 .nav-btn-active {
-  background-color: #111111 !important;
-  color: #ffffff !important;
+  background-color: #f4f4f5 !important;
+  color: #09090b !important;
+  border-color: #e4e4e7 !important;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 .nav-btn-active:hover {
-  background-color: #27272a !important;
-  color: #ffffff !important;
+  background-color: #e4e4e7 !important;
+  color: #09090b !important;
 }
 
 /* Thinking 3-Dot Pulse Animation */
@@ -117,10 +119,10 @@ p, span, div, button, input, select, label, code, pre, a, li {
 }
 
 .thinking-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background-color: #111111;
+  background-color: #71717a;
   animation: dotPulse 1.4s infinite ease-in-out both;
 }
 
@@ -150,7 +152,7 @@ p, span, div, button, input, select, label, code, pre, a, li {
 }
 
 .activity-active {
-  background: linear-gradient(90deg, #111111 0%, #71717a 50%, #111111 100%);
+  background: linear-gradient(90deg, #18181b 0%, #71717a 50%, #18181b 100%);
   background-size: 200% 100%;
   animation: activityShimmer 1.8s infinite linear;
 }
@@ -158,9 +160,9 @@ p, span, div, button, input, select, label, code, pre, a, li {
 /* Blinking Cursor for Streaming */
 .streaming-cursor {
   display: inline-block;
-  width: 3px;
+  width: 2px;
   height: 1.1em;
-  background-color: #111111;
+  background-color: #09090b;
   margin-left: 2px;
   vertical-align: text-bottom;
   animation: blink 0.8s infinite;
@@ -173,26 +175,26 @@ p, span, div, button, input, select, label, code, pre, a, li {
 
 /* Message Formatting */
 .message-content {
-  font-size: 15px;
+  font-size: 14.5px;
   line-height: 1.65;
-  font-weight: 700;
+  font-weight: 450;
   color: #18181b;
 }
 
 .message-content strong {
-  font-weight: 800;
-  color: #111111;
+  font-weight: 650;
+  color: #09090b;
 }
 
 .message-content code {
   font-family: var(--font-mono) !important;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 500;
   background-color: #f4f4f5;
   border: 1px solid #e4e4e7;
-  padding: 0.15rem 0.4rem;
+  padding: 0.15rem 0.35rem;
   border-radius: 4px;
-  color: #111111;
+  color: #09090b;
 }
 
 .message-content p {
@@ -214,7 +216,7 @@ p, span, div, button, input, select, label, code, pre, a, li {
 }
 
 /* ==========================================================================
-   TIMELINE MATRIX UI ARCHITECTURE
+   TIMELINE UI ARCHITECTURE (Clean Milestone Spine, Zero Side Dashes)
    ========================================================================== */
 
 /* Timeline Spine Track */
@@ -243,7 +245,7 @@ p, span, div, button, input, select, label, code, pre, a, li {
   height: 1.75rem;
   border-radius: 9999px;
   background-color: #ffffff;
-  border: 2px solid #111111;
+  border: 2px solid #a1a1aa;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -252,33 +254,30 @@ p, span, div, button, input, select, label, code, pre, a, li {
 }
 
 .timeline-item-node.completed {
-  background-color: #111111;
+  background-color: #18181b;
   color: #ffffff;
-  border-color: #111111;
+  border-color: #18181b;
 }
 
 .timeline-item-node.deadline {
-  background-color: #111111;
+  background-color: #18181b;
   color: #ffffff;
-  border-radius: 6px;
-  transform: rotate(45deg);
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.08);
-}
-.timeline-item-node.deadline > svg {
-  transform: rotate(-45deg);
+  border-radius: 9999px;
+  border-color: #18181b;
+  box-shadow: 0 0 0 4px rgba(24, 24, 27, 0.08);
 }
 
 .timeline-item-node.pending-active {
-  border-color: #111111;
-  box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.12);
+  border-color: #18181b;
+  box-shadow: 0 0 0 4px rgba(24, 24, 27, 0.08);
 }
 
 /* Filter Pill Controls */
 .filter-btn {
-  padding: 0.4rem 0.85rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 6px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   color: #71717a;
   background: transparent;
   border: 1px solid transparent;
@@ -287,51 +286,56 @@ p, span, div, button, input, select, label, code, pre, a, li {
 }
 
 .filter-btn:hover {
-  color: #111111;
+  color: #09090b;
   background-color: #f4f4f5;
 }
 
 .filter-btn-active {
-  color: #111111 !important;
+  color: #09090b !important;
   background-color: #f4f4f5 !important;
   border-color: #e4e4e7 !important;
+  font-weight: 600;
 }
 
 /* ==========================================================================
-   DIRECT IN-APP NOTIFICATIONS & MODALS (No Browser Alert/Confirm)
+   SHADCN / SONNER FLOATING IN-APP TOASTS (No Side Dashes / Zero AI Feel)
    ========================================================================== */
 
 .chronos-toast {
   pointer-events: auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
-  padding: 0.85rem 1rem;
-  background-color: #111111;
-  color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  font-size: 13px;
-  font-weight: 700;
+  padding: 0.85rem 1.15rem;
+  background-color: #ffffff;
+  color: #09090b;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  font-size: 13.5px;
+  font-weight: 500;
   animation: toastSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transition: all 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid #e4e4e7;
 }
 
 .chronos-toast.toast-success {
-  border-left: 4px solid #10b981;
+  border-color: #e4e4e7;
+  background-color: #ffffff;
 }
 
 .chronos-toast.toast-error {
-  border-left: 4px solid #ef4444;
+  border-color: #e4e4e7;
+  background-color: #ffffff;
 }
 
 .chronos-toast.toast-warning {
-  border-left: 4px solid #f59e0b;
+  border-color: #e4e4e7;
+  background-color: #ffffff;
 }
 
 .chronos-toast.toast-info {
-  border-left: 4px solid #e4e4e7;
+  border-color: #e4e4e7;
+  background-color: #ffffff;
 }
 
 @keyframes toastSlideIn {

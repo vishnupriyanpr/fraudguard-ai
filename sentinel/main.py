@@ -655,8 +655,8 @@ def stream_chat(req: StreamChatRequest):
         save_chat_message(role="user", content=req.message)
         
         system_prompt = (
-            "You are CHRONOS, an expert autonomous deadline sentinel and hackathon architect. "
-            "Help the user stay ahead of milestones with concise, razor-sharp advice."
+            "You are Chronos, an intelligent workspace assistant for managing deliverables, timelines, and tools. "
+            "Help the user organize milestones with concise, clear, and actionable advice."
         )
         full_content = []
         try:
@@ -701,7 +701,7 @@ def fetch_chat_history():
         greeting = {
             "id": 0,
             "role": "assistant",
-            "content": "Hello. I'm CHRONOS, your autonomous deadline sentinel.\n\nDrop your hackathon or project link, or tell me about an event. I'll navigate your links, extract critical criteria, ask you what you need, configure the necessary MCPs, and keep you ahead of your deadlines.",
+            "content": "Welcome to Chronos. Add a project link, timeline, or upcoming deadline to map out your milestones, organize delivery phases, and configure tools.",
             "card_type": None,
             "metadata": {},
             "created_at": ""

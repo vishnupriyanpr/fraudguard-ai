@@ -53,7 +53,7 @@ async function initApp() {
   setInterval(checkModelStatus, 10000);
 }
 
-// ── Direct In-App Notifications & Modal System (No Browser Alerts) ───────
+// ── Shadcn / Sonner In-App Notifications (Zero Side Dash / Zero AI Feel) ──
 
 function showToast(message, type = 'info', duration = 3800) {
   const container = document.getElementById("toast-container");
@@ -64,23 +64,24 @@ function showToast(message, type = 'info', duration = 3800) {
   
   let iconSvg = '';
   if (type === 'success') {
-    iconSvg = '<svg class="size-4 text-emerald-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+    iconSvg = '<span class="size-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200/60"><svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></span>';
   } else if (type === 'error') {
-    iconSvg = '<svg class="size-4 text-red-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+    iconSvg = '<span class="size-6 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200/60"><svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></span>';
   } else if (type === 'warning') {
-    iconSvg = '<svg class="size-4 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+    iconSvg = '<span class="size-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200/60"><svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></span>';
   } else {
-    iconSvg = '<svg class="size-4 text-zinc-300 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+    iconSvg = '<span class="size-6 rounded-full bg-zinc-100 text-zinc-700 flex items-center justify-center shrink-0 border border-zinc-200/60"><svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>';
   }
 
   toast.innerHTML = `
     ${iconSvg}
-    <div class="flex-1 text-[13px] font-bold leading-snug">${escapeHtml(message)}</div>
-    <button class="text-zinc-400 hover:text-white cursor-pointer ml-1 text-sm font-bold">&times;</button>
+    <div class="flex-1 text-[13.5px] font-semibold text-zinc-900 leading-snug">${escapeHtml(message)}</div>
+    <button class="text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 size-6 rounded-md flex items-center justify-center cursor-pointer transition-colors text-sm font-bold">&times;</button>
   `;
 
   toast.querySelector("button").onclick = () => {
     toast.style.opacity = '0';
+    toast.style.transform = 'translateY(6px)';
     setTimeout(() => toast.remove(), 200);
   };
 
@@ -150,7 +151,7 @@ function startRadarCountdown() {
       const now = new Date();
       const diff = state.targetDeadline - now;
       if (diff <= 0) {
-        text = "DEADLINE REACHED";
+        text = "Target reached";
       } else {
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
@@ -270,18 +271,18 @@ function updateModelActivity(mode, label) {
   if (mode === 'thinking') {
     fill.style.width = '100%';
     fill.className = 'h-full activity-active';
-    text.textContent = label || `Reasoning with ${state.activeModel}...`;
-    text.className = 'text-[13px] font-mono text-[#111] font-semibold';
+    text.textContent = label || `Processing request...`;
+    text.className = 'text-[11.5px] text-zinc-900 font-medium';
   } else if (mode === 'streaming') {
     fill.style.width = '100%';
-    fill.className = 'h-full bg-[#111] transition-all duration-150';
-    text.textContent = label || 'Streaming response...';
-    text.className = 'text-[13px] font-mono text-[#111] font-semibold';
+    fill.className = 'h-full bg-zinc-900 transition-all duration-150';
+    text.textContent = label || 'Generating response...';
+    text.className = 'text-[11.5px] text-zinc-900 font-medium';
   } else {
     fill.style.width = '0%';
-    fill.className = 'h-full bg-zinc-300 transition-all duration-300';
-    text.textContent = label || 'Model idle';
-    text.className = 'text-[13px] font-mono text-zinc-400';
+    fill.className = 'h-full bg-zinc-200 transition-all duration-300';
+    text.textContent = label || 'Ready for requests';
+    text.className = 'text-[11.5px] text-zinc-500 font-normal';
   }
 }
 
@@ -294,13 +295,24 @@ function switchView(viewName) {
   const target = document.getElementById(`view-${viewName}`);
   if (target) target.classList.remove("hidden");
 
+  const breadcrumbMap = {
+    chat: 'Overview',
+    matrix: 'Timeline',
+    tasks: 'Tasks',
+    mcps: 'Tools',
+    connectors: 'Integrations',
+    channels: 'Channels'
+  };
+  const bcEl = document.getElementById("header-breadcrumb");
+  if (bcEl) bcEl.textContent = breadcrumbMap[viewName] || 'Workspace';
+
   ['chat', 'matrix', 'tasks', 'mcps', 'connectors', 'channels'].forEach(v => {
     const btn = document.getElementById(`nav-${v}`);
     if (btn) {
       if (v === viewName) {
         btn.className = "nav-btn nav-btn-active";
       } else {
-        btn.className = "nav-btn text-zinc-600 hover:bg-zinc-50 hover:text-[#111]";
+        btn.className = "nav-btn";
       }
     }
   });
@@ -410,8 +422,8 @@ function renderMessageHtml(msg) {
 
   if (isUser) {
     return `
-      <div class="flex justify-end animate-fadeIn my-6">
-        <div class="max-w-xl rounded-xl rounded-tr-xs bg-[#111] text-white px-5 py-3.5 text-[15px] font-bold leading-relaxed shadow-sm">
+      <div class="flex justify-end animate-fadeIn my-5">
+        <div class="max-w-xl rounded-2xl rounded-tr-xs bg-zinc-900 text-white px-4 py-3 text-[14px] leading-relaxed shadow-2xs">
           ${formattedContent}
         </div>
       </div>
@@ -428,30 +440,30 @@ function renderMessageHtml(msg) {
   } else if (msg.card_type === "channel_connect_trigger") {
     cardHtml = `
       <div class="pt-2">
-        <button onclick="switchView('channels')" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-[#111] text-white text-[14px] font-semibold hover:bg-zinc-800 transition-colors cursor-pointer">
-          <span>Configure Channels</span>
+        <button onclick="switchView('connectors')" class="inline-flex items-center gap-2 h-9 px-3.5 rounded-lg bg-zinc-900 text-white text-[13px] font-medium hover:bg-zinc-800 transition-colors cursor-pointer">
+          <span>Configure Integrations</span>
         </button>
       </div>
     `;
   }
 
   return `
-    <div class="flex items-start gap-4 max-w-3xl animate-fadeIn my-6 group">
-      <div class="size-8 rounded-lg bg-[#111] flex items-center justify-center text-white shrink-0 mt-0.5">
-        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <div class="flex items-start gap-3.5 max-w-3xl animate-fadeIn my-5 group">
+      <div class="size-7 rounded-lg bg-zinc-900 flex items-center justify-center text-white shrink-0 mt-0.5">
+        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
       </div>
-      <div class="flex-1 space-y-3">
-        <div class="text-[15px] text-[#111] leading-relaxed message-content">
+      <div class="flex-1 space-y-2.5">
+        <div class="text-[14.5px] text-zinc-900 leading-relaxed message-content font-normal">
           ${formattedContent}
         </div>
         ${cardHtml}
-        <div class="flex items-center gap-2 pt-1 text-[11px] font-mono text-zinc-400">
-          <span class="font-extrabold text-zinc-600">CHRONOS SENTINEL</span>
+        <div class="flex items-center gap-2 pt-0.5 text-[11.5px] text-zinc-400">
+          <span class="font-medium text-zinc-600">Chronos</span>
           <span>·</span>
-          <button onclick="copyMessageText(this)" class="hover:text-[#111] underline cursor-pointer font-bold transition-colors">Copy</button>
+          <button onclick="copyMessageText(this)" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors">Copy</button>
         </div>
       </div>
     </div>
@@ -460,28 +472,33 @@ function renderMessageHtml(msg) {
 
 function renderResearchCard(meta) {
   return `
-    <div class="rounded-xl border border-[#e4e4e7] bg-white p-5 space-y-4">
+    <div class="rounded-xl border border-zinc-200 bg-white p-5 space-y-4 shadow-2xs hover:border-zinc-300 transition-all">
       <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
-        <div class="text-[13px] font-mono font-bold uppercase tracking-wider text-[#111]">
-          Pre-Research // ${escapeHtml(meta.event_title || '')}
+        <div class="flex items-center gap-2.5">
+          <span class="size-6 rounded-md bg-zinc-900 text-white flex items-center justify-center shrink-0">
+            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </span>
+          <span class="text-[13.5px] font-bold text-zinc-900">
+            Event Scope &amp; Target Rubric
+          </span>
         </div>
-        <span class="px-2 py-0.5 rounded text-[12px] font-mono font-semibold bg-zinc-100 text-[#111]">
-          Verified
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-zinc-100 text-zinc-700 border border-zinc-200">
+          Parsed
         </span>
       </div>
 
-      <p class="text-[14px] text-zinc-600 leading-relaxed font-bold">
+      <p class="text-[14px] text-zinc-700 leading-relaxed font-medium">
         ${escapeHtml(meta.summary || '')}
       </p>
 
-      <div class="space-y-2 pt-1">
-        <div class="text-[12px] font-mono uppercase text-zinc-400 font-semibold">Priority Tracks:</div>
+      <div class="space-y-2 pt-1 border-t border-zinc-100">
+        <div class="text-[12px] font-semibold text-zinc-500">Suggested Action Tracks:</div>
         <div class="flex flex-wrap gap-2">
-          <button onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="h-9 px-3.5 rounded-lg border border-[#e4e4e7] bg-zinc-50 hover:bg-[#111] hover:text-white text-[13px] font-bold text-[#111] transition-all cursor-pointer">
-            Track 1: Autonomous Agent (Python)
+          <button onclick="quickSend('I want to prioritize Track 1 with Python backend and solo builder mode')" class="h-8 px-3 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-[12.5px] font-medium text-zinc-800 transition-colors cursor-pointer">
+            Track 1: Backend Architecture &amp; Local Agents
           </button>
-          <button onclick="quickSend('Solo builder mode with full-stack UI, Chrome DevTools testing')" class="h-9 px-3.5 rounded-lg border border-[#e4e4e7] bg-zinc-50 hover:bg-[#111] hover:text-white text-[13px] font-bold text-[#111] transition-all cursor-pointer">
-            Solo Builder (Full-Stack UI)
+          <button onclick="quickSend('Solo builder mode with full-stack UI, Chrome DevTools testing')" class="h-8 px-3 rounded-lg border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-[12.5px] font-medium text-zinc-800 transition-colors cursor-pointer">
+            Track 2: Full-Stack Interface &amp; Delivery
           </button>
         </div>
       </div>
@@ -494,37 +511,43 @@ function renderTasksAndMcpsCard(meta) {
   const mcps = meta.mcps || [];
 
   const tasksHtml = tasks.map(t => `
-    <div class="flex items-start gap-3 p-3.5 rounded-lg border border-[#e4e4e7] bg-zinc-50/50 ${t.status === 'done' ? 'opacity-50 line-through' : ''}">
-      <input type="checkbox" class="accent-[#111] size-4 rounded mt-1 cursor-pointer" ${t.status === 'done' ? 'checked' : ''} onchange="toggleTaskInChat(${t.id}, this.checked)">
+    <div class="flex items-start gap-3 p-3 rounded-lg border border-zinc-200/80 bg-zinc-50/50 ${t.status === 'done' ? 'opacity-60 line-through' : ''} hover:border-zinc-300 transition-colors">
+      <input type="checkbox" class="accent-zinc-900 size-4 rounded mt-0.5 cursor-pointer shrink-0" ${t.status === 'done' ? 'checked' : ''} onchange="toggleTaskInChat(${t.id}, this.checked)">
       <div class="flex-1 space-y-1">
-        <div class="text-[14px] font-bold text-[#111]">${escapeHtml(t.title)}</div>
-        <div class="flex items-center gap-2 text-[12px] font-mono text-zinc-500 font-semibold">
-          <span class="px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-800">${t.phase}</span>
-          <span>Due: ${t.due_date || 'TBD'}</span>
-          ${t.assigned_mcp ? `<span class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700">Tool: ${escapeHtml(t.assigned_mcp)}</span>` : ''}
+        <div class="text-[13.5px] font-semibold text-zinc-900">${escapeHtml(t.title)}</div>
+        <div class="flex items-center gap-2 text-[12px] text-zinc-500 font-medium">
+          <span class="px-1.5 py-0.5 rounded bg-zinc-200/80 text-zinc-800 font-mono text-[11px]">${escapeHtml(t.phase || '')}</span>
+          <span>Due: ${escapeHtml(t.due_date || 'TBD')}</span>
+          ${t.assigned_mcp ? `<span class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700 font-mono text-[11px]">Tool: ${escapeHtml(t.assigned_mcp)}</span>` : ''}
         </div>
       </div>
     </div>
   `).join("");
 
   const mcpsHtml = mcps.slice(0, 3).map(m => `
-    <div class="flex items-center justify-between p-3 rounded-lg border border-[#e4e4e7] bg-white font-mono text-[13px]">
-      <span class="font-bold text-[#111]">${escapeHtml(m.name)}</span>
+    <div class="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 bg-white text-[12.5px]">
+      <span class="font-semibold text-zinc-900">${escapeHtml(m.name)}</span>
       <div class="flex items-center gap-2">
-        <code class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800">${escapeHtml(m.install_command)}</code>
-        <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="px-2 py-0.5 rounded bg-zinc-200 hover:bg-[#111] hover:text-white text-[12px] font-semibold transition-colors cursor-pointer">Copy</button>
+        <code class="px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 font-mono text-[11px]">${escapeHtml(m.install_command)}</code>
+        <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-900 hover:text-white text-[11px] font-semibold transition-colors cursor-pointer border border-zinc-200">Copy</button>
       </div>
     </div>
   `).join("");
 
   return `
-    <div class="rounded-xl border border-[#e4e4e7] bg-white p-5 space-y-4">
+    <div class="rounded-xl border border-zinc-200 bg-white p-5 space-y-4 shadow-2xs hover:border-zinc-300 transition-all">
       <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
-        <div class="text-[13px] font-mono font-bold uppercase tracking-wider text-[#111]">
-          Phased Milestones &amp; MCP Stack
+        <div class="flex items-center gap-2.5">
+          <span class="size-6 rounded-md bg-zinc-900 text-white flex items-center justify-center shrink-0">
+            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+          </span>
+          <span class="text-[13.5px] font-bold text-zinc-900">
+            Milestone Deliverables &amp; Toolchain
+          </span>
         </div>
-        <button onclick="switchView('matrix')" class="text-[13px] font-semibold text-zinc-600 hover:text-[#111] cursor-pointer">
-          Timeline &rarr;
+        <button onclick="switchView('matrix')" class="inline-flex items-center gap-1 text-[12px] font-semibold text-zinc-600 hover:text-zinc-900 cursor-pointer transition-colors">
+          <span>View Matrix</span>
+          <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
       </div>
 
@@ -533,18 +556,18 @@ function renderTasksAndMcpsCard(meta) {
       </div>
 
       <div class="space-y-2 pt-2 border-t border-zinc-100">
-        <div class="text-[12px] font-mono uppercase text-zinc-400 font-semibold">Configured Tools:</div>
-        <div class="space-y-2">
+        <div class="text-[12px] font-semibold text-zinc-500">Configured MCP Tools:</div>
+        <div class="space-y-1.5">
           ${mcpsHtml}
         </div>
       </div>
 
-      <div class="flex items-center gap-2 pt-1">
-        <button onclick="exportMcpConfig()" class="h-9 px-4 rounded-lg bg-[#111] text-white text-[13px] font-semibold hover:bg-zinc-800 transition-all cursor-pointer">
+      <div class="flex items-center gap-2 pt-1 border-t border-zinc-100">
+        <button onclick="exportMcpConfig()" class="h-8 px-3.5 rounded-lg bg-zinc-900 text-white text-[12.5px] font-semibold hover:bg-zinc-800 transition-colors cursor-pointer">
           Export Config
         </button>
-        <button onclick="switchView('channels')" class="h-9 px-4 rounded-lg border border-[#e4e4e7] hover:bg-zinc-50 text-[13px] font-semibold text-zinc-700 transition-all cursor-pointer">
-          Connect Alerts
+        <button onclick="switchView('connectors')" class="h-8 px-3.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-[12.5px] font-semibold text-zinc-700 transition-colors cursor-pointer">
+          Alert Connectors
         </button>
       </div>
     </div>
@@ -554,16 +577,32 @@ function renderTasksAndMcpsCard(meta) {
 function renderBriefingCard(meta) {
   const briefing = meta.briefing || {};
   return `
-    <div class="rounded-xl border-l-4 border-l-[#111] border border-[#e4e4e7] bg-white p-5 space-y-2">
-      <div class="text-[12px] font-mono uppercase text-zinc-500 font-bold">
-        ${escapeHtml(briefing.header || 'EXECUTIVE BRIEFING')}
+    <div class="rounded-xl border border-zinc-200/90 bg-zinc-50/60 p-5 space-y-3 shadow-2xs hover:border-zinc-300 transition-all">
+      <div class="flex items-center justify-between border-b border-zinc-200/60 pb-2.5">
+        <div class="flex items-center gap-2.5">
+          <span class="size-6 rounded-md bg-zinc-900 text-white flex items-center justify-center shrink-0">
+            <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </span>
+          <span class="text-[13px] font-bold text-zinc-900">
+            ${escapeHtml(briefing.header || 'Executive Priority Briefing')}
+          </span>
+        </div>
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+          <span class="size-1.5 rounded-full bg-emerald-500"></span>
+          Active
+        </span>
       </div>
-      <div class="text-[14px] font-bold text-[#111] leading-snug">
+
+      <div class="text-[14px] font-medium text-zinc-900 leading-relaxed">
         ${escapeHtml(briefing.message || '')}
       </div>
-      <button onclick="switchView('matrix')" class="text-[13px] font-semibold text-zinc-600 hover:text-[#111] underline pt-1 cursor-pointer">
-        Inspect Schedule Timeline
-      </button>
+
+      <div class="pt-1">
+        <button onclick="switchView('matrix')" class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-zinc-600 hover:text-zinc-900 transition-colors cursor-pointer">
+          <span>Inspect Milestone Timeline</span>
+          <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
     </div>
   `;
 }
@@ -924,43 +963,44 @@ function renderFullCalendar() {
       return `
         <div class="relative pl-10 my-8">
           <div class="timeline-item-node deadline">
-            <svg class="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <svg class="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <circle cx="12" cy="12" r="10"></circle>
               <polyline points="12 6 12 12 16 14"></polyline>
             </svg>
           </div>
-          <div class="p-6 rounded-xl border-2 border-[#111] bg-white space-y-3 shadow-md">
+          <div class="p-6 rounded-xl border border-zinc-300 bg-white space-y-3.5 shadow-xs">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-100 pb-3">
               <div class="flex items-center gap-2">
-                <span class="px-2.5 py-1 rounded-md text-[12px] font-mono font-extrabold bg-[#111] text-white tracking-wider">
-                  FINAL TARGET DEADLINE
+                <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-zinc-900 text-white tracking-wide uppercase">
+                  Target Submission Deadline
                 </span>
-                <span class="text-[13px] font-mono font-bold text-zinc-500">
-                  Buffer Lock Active
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                  <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                  Active Target
                 </span>
               </div>
-              <div class="text-[14px] font-mono font-extrabold text-[#111]">
+              <div class="text-[13.5px] font-mono font-bold text-zinc-900">
                 ${escapeHtml(item.date)}
               </div>
             </div>
 
-            <div class="text-lg font-extrabold text-[#111] leading-tight">
+            <div class="text-base font-bold text-zinc-900 leading-snug">
               ${escapeHtml(item.title)}
             </div>
 
             ${item.description ? `
-              <p class="text-[14px] text-zinc-600 leading-relaxed font-bold">
+              <p class="text-[13.5px] text-zinc-600 leading-relaxed font-normal">
                 ${escapeHtml(item.description)}
               </p>
             ` : ''}
 
-            <div class="flex flex-wrap items-center gap-3 pt-2 text-[13px] font-mono font-bold text-zinc-500">
-              <span class="inline-flex items-center gap-1.5 text-emerald-600">
-                <span class="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Automated SAR &amp; Portal Lock Freeze</span>
+            <div class="flex flex-wrap items-center gap-3 pt-1 text-[12px] text-zinc-500 font-medium">
+              <span class="inline-flex items-center gap-1.5 text-emerald-700 font-semibold">
+                <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                <span>Automated calendar sync &amp; reminder schedule</span>
               </span>
               <span>·</span>
-              <span>Local Daemon Monitoring 24/7</span>
+              <span>Local background monitoring active</span>
             </div>
           </div>
         </div>
@@ -971,82 +1011,82 @@ function renderFullCalendar() {
     const isDone = item.status === 'done';
     const relativeTime = formatRelativeTime(item.date);
 
-    let phaseBadgeClass = "bg-zinc-100 text-[#111]";
-    if (item.phase && item.phase.includes("Phase 2")) phaseBadgeClass = "bg-[#111] text-white";
-    if (item.phase && item.phase.includes("Phase 4")) phaseBadgeClass = "bg-emerald-100 text-emerald-900 border border-emerald-300";
+    let phaseBadgeClass = "bg-zinc-100 text-zinc-800 border-zinc-200";
+    if (item.phase && item.phase.includes("Phase 2")) phaseBadgeClass = "bg-zinc-100 text-zinc-900 border-zinc-200 font-bold";
+    if (item.phase && item.phase.includes("Phase 4")) phaseBadgeClass = "bg-emerald-50 text-emerald-800 border-emerald-200";
 
     return `
       <div class="relative pl-10 my-4 group">
         <div class="timeline-item-node ${isDone ? 'completed' : 'pending-active'}">
           ${isDone ? `
-            <svg class="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <svg class="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
           ` : `
-            <span class="text-[11px] font-mono font-bold text-[#111]">${stepNumber}</span>
+            <span class="text-[11px] font-mono font-bold text-zinc-800">${stepNumber}</span>
           `}
         </div>
 
-        <div class="p-5 rounded-xl border border-[#e4e4e7] ${isDone ? 'bg-zinc-50/70 border-zinc-200 opacity-60' : 'bg-white hover:border-zinc-400 hover:shadow-subtle'} transition-all space-y-3 shadow-2xs">
+        <div class="p-5 rounded-xl border border-zinc-200 ${isDone ? 'bg-zinc-50/70 border-zinc-200 opacity-60' : 'bg-white hover:border-zinc-300'} transition-all space-y-3 shadow-2xs">
           
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="flex items-center gap-2">
-              <span class="px-2 py-0.5 rounded text-[12px] font-mono font-bold ${phaseBadgeClass}">
-                ${escapeHtml(item.phase || 'Phase Milestone')}
+              <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold border ${phaseBadgeClass}">
+                ${escapeHtml(item.phase || 'Milestone')}
               </span>
               ${item.priority ? `
-                <span class="px-2 py-0.5 rounded text-[11px] font-mono font-extrabold uppercase ${item.priority === 'critical' ? 'bg-red-100 text-red-900 border border-red-200' : 'bg-zinc-100 text-zinc-700'}">
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase ${item.priority === 'critical' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'}">
                   ${item.priority}
                 </span>
               ` : ''}
             </div>
 
-            <div class="flex items-center gap-2 text-[13px] font-mono">
+            <div class="flex items-center gap-2 text-[12.5px] font-mono">
               ${relativeTime ? `
-                <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${relativeTime.includes('overdue') ? 'bg-red-100 text-red-700' : 'bg-zinc-100 text-zinc-600'}">
+                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${relativeTime.includes('overdue') ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-zinc-100 text-zinc-700 border border-zinc-200'}">
                   ${relativeTime}
                 </span>
               ` : ''}
-              <span class="text-zinc-500 font-semibold">${item.date || 'TBD'}</span>
+              <span class="text-zinc-500 font-medium">${item.date || 'TBD'}</span>
             </div>
           </div>
 
           <div class="flex items-start gap-3">
             <input 
               type="checkbox" 
-              class="accent-[#111] size-5 rounded-md mt-0.5 cursor-pointer shrink-0" 
+              class="accent-zinc-900 size-4 rounded mt-1 cursor-pointer shrink-0" 
               ${isDone ? 'checked' : ''} 
               onchange="toggleTaskInTimeline(${item.task_id || 0}, this.checked)"
               title="Mark milestone complete"
             />
             <div class="flex-1 space-y-1">
-              <div class="text-[15px] font-extrabold text-[#111] ${isDone ? 'line-through text-zinc-400' : ''}">
+              <div class="text-[14px] font-bold text-zinc-900 ${isDone ? 'line-through text-zinc-400' : ''}">
                 ${escapeHtml(item.title)}
               </div>
               ${item.description ? `
-                <p class="text-[13px] text-zinc-500 leading-relaxed font-bold">
+                <p class="text-[13px] text-zinc-600 leading-relaxed font-normal">
                   ${escapeHtml(item.description)}
                 </p>
               ` : ''}
             </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-zinc-100 text-[13px]">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-zinc-100 text-[12px]">
             <div class="flex items-center gap-2">
               ${item.assigned_mcp ? `
-                <div class="flex items-center gap-1.5 font-mono text-[12px] text-zinc-600 font-bold">
+                <div class="flex items-center gap-1.5 font-mono text-[11.5px] text-zinc-600 font-medium">
                   <svg class="size-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
                   <span>Tool:</span>
-                  <code class="px-1.5 py-0.5 rounded bg-zinc-100 text-[#111] border border-zinc-200">${escapeHtml(item.assigned_mcp)}</code>
+                  <code class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-900 border border-zinc-200">${escapeHtml(item.assigned_mcp)}</code>
                 </div>
               ` : `
-                <span class="text-zinc-400 font-mono text-[12px]">No tool assigned</span>
+                <span class="text-zinc-400 text-[12px]">No tool assigned</span>
               `}
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
               ${item.task_id ? `
-                <button onclick="deleteTaskInTimeline(${item.task_id})" class="text-[12px] font-mono text-zinc-400 hover:text-red-600 cursor-pointer transition-colors" title="Delete milestone">
+                <button onclick="deleteTaskInTimeline(${item.task_id})" class="text-[11.5px] font-medium text-zinc-400 hover:text-rose-600 cursor-pointer transition-colors" title="Delete milestone">
                   Delete
                 </button>
               ` : ''}
@@ -1155,56 +1195,56 @@ function filterTaskConsole() {
     const isDone = t.status === "done";
     const isInProgress = t.status === "in_progress" || t.status === "active";
     
-    let priorityClass = "bg-zinc-100 text-zinc-700";
-    if (t.priority === "critical") priorityClass = "bg-red-100 text-red-900 border border-red-200";
-    if (t.priority === "high") priorityClass = "bg-amber-100 text-amber-900 border border-amber-200";
+    let priorityClass = "bg-zinc-100 text-zinc-700 border-zinc-200";
+    if (t.priority === "critical") priorityClass = "bg-rose-50 text-rose-700 border-rose-200";
+    if (t.priority === "high") priorityClass = "bg-amber-50 text-amber-700 border-amber-200";
 
     return `
-      <div class="p-5 rounded-xl border border-[#e4e4e7] ${isDone ? 'bg-zinc-50/70 border-zinc-200 opacity-60' : 'bg-white hover:border-zinc-400'} transition-all space-y-3 shadow-2xs">
+      <div class="p-5 rounded-xl border border-zinc-200 ${isDone ? 'bg-zinc-50/70 border-zinc-200 opacity-60' : 'bg-white hover:border-zinc-300'} transition-all space-y-3.5 shadow-2xs">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-100 pb-3">
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="px-2 py-0.5 rounded text-[12px] font-mono font-bold bg-[#111] text-white">
+            <span class="px-2 py-0.5 rounded-md text-[11.5px] font-semibold bg-zinc-900 text-white">
               ${escapeHtml(t.phase || 'Phase 1: Setup')}
             </span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-mono font-extrabold uppercase ${priorityClass}">
+            <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase border ${priorityClass}">
               ${escapeHtml(t.priority || 'high')}
             </span>
             ${t.assigned_mcp ? `
-              <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-zinc-100 text-zinc-800">
+              <span class="px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-zinc-100 text-zinc-700 border border-zinc-200">
                 Tool: ${escapeHtml(t.assigned_mcp)}
               </span>
             ` : ''}
           </div>
           
           <div class="flex items-center gap-2">
-            <select onchange="updateTaskStatusFromConsole(${t.id}, this.value)" class="h-8 px-2 rounded-lg border border-[#e4e4e7] bg-white text-[12px] font-bold text-[#111] cursor-pointer">
+            <select onchange="updateTaskStatusFromConsole(${t.id}, this.value)" class="h-8 px-2.5 rounded-lg border border-zinc-200 bg-white text-[12px] font-semibold text-zinc-800 cursor-pointer focus:outline-none focus:ring-1 focus:ring-zinc-950">
               <option value="pending" ${t.status === 'pending' ? 'selected' : ''}>Pending</option>
               <option value="in_progress" ${isInProgress ? 'selected' : ''}>In Progress</option>
               <option value="done" ${isDone ? 'selected' : ''}>Completed</option>
             </select>
-            <button onclick="openTaskEditModal(${t.id})" title="Edit Task" class="size-8 rounded-lg border border-[#e4e4e7] hover:bg-zinc-100 text-zinc-700 flex items-center justify-center cursor-pointer transition-colors">
+            <button onclick="openTaskEditModal(${t.id})" title="Edit Task" class="size-8 rounded-lg border border-zinc-200 hover:bg-zinc-100 text-zinc-600 flex items-center justify-center cursor-pointer transition-colors">
               <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </button>
-            <button onclick="deleteTaskFromConsole(${t.id})" title="Delete Task" class="size-8 rounded-lg border border-[#e4e4e7] hover:bg-red-50 text-zinc-400 hover:text-red-600 flex items-center justify-center cursor-pointer transition-colors">
+            <button onclick="deleteTaskFromConsole(${t.id})" title="Delete Task" class="size-8 rounded-lg border border-zinc-200 hover:bg-rose-50 text-zinc-400 hover:text-rose-600 flex items-center justify-center cursor-pointer transition-colors">
               <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           </div>
         </div>
 
         <div class="space-y-1">
-          <div class="text-[15px] font-extrabold text-[#111] ${isDone ? 'line-through text-zinc-400' : ''}">
+          <div class="text-[14.5px] font-bold text-zinc-900 ${isDone ? 'line-through text-zinc-400' : ''}">
             ${escapeHtml(t.title)}
           </div>
           ${t.description ? `
-            <p class="text-[13px] text-zinc-600 leading-relaxed font-bold">
+            <p class="text-[13px] text-zinc-600 leading-relaxed font-normal">
               ${escapeHtml(t.description)}
             </p>
           ` : ''}
         </div>
 
-        <div class="flex items-center justify-between pt-1 text-[12px] font-mono font-bold text-zinc-500">
-          <span>Target Deadline: <strong class="text-[#111]">${escapeHtml(t.due_date || 'TBD')}</strong></span>
-          <span class="text-zinc-400">ID #${t.id}</span>
+        <div class="flex items-center justify-between pt-1 text-[12px] font-medium text-zinc-500">
+          <span>Target Deadline: <strong class="text-zinc-800 font-semibold">${escapeHtml(t.due_date || 'TBD')}</strong></span>
+          <span class="text-zinc-400 font-mono text-[11px]">#${t.id}</span>
         </div>
       </div>
     `;

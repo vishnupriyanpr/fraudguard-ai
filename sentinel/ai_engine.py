@@ -577,17 +577,16 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
     # 5. Default General Assistance - Call Active LLM for intelligent conversation!
     llm_prompt = (
         f"The user says: '{user_text_clean}'. Provide a helpful, intelligent, concise response "
-        "as CHRONOS, the autonomous deadline sentinel. If they mention a hackathon, project, or deadline, "
-        "encourage them to paste the URL or provide the date so you can crawl criteria, schedule milestones backwards, "
-        "and configure MCP tools."
+        "as Chronos, their project workspace assistant. If they mention an event, hackathon, or project, "
+        "invite them to share the link or target deadline so you can map out deliverables, "
+        "schedule milestone gates backwards, and configure integrations."
     )
-    llm_system = "You are CHRONOS, an expert autonomous deadline sentinel and hackathon architect. Be concise, direct, and authoritative. Avoid generic boilerplate."
+    llm_system = "You are Chronos, an intelligent workspace assistant for managing deliverables, timelines, and tools. Be concise, direct, helpful, and natural. Never sound robotic or use AI jargon."
     response_text = call_llm(llm_system, llm_prompt)
     if not response_text:
         response_text = (
-            "I'm CHRONOS, your local deadline sentinel and MCP orchestrator.\n\n"
-            "Paste your hackathon or project link, or tell me about an upcoming event with its deadline. "
-            "I'll digest the links, ask what you need, configure the relevant MCPs, and keep you ahead of your milestones."
+            "Welcome to Chronos. Add a project link, timeline, or upcoming deadline to map out your milestones, "
+            "organize delivery phases, and configure tools."
         )
 
     return {
