@@ -1675,16 +1675,16 @@ async function openIntegrationsModal() {
   try {
     const res = await fetch("/api/integrations/status");
     const data = await res.json();
-    const gcalBadge = document.getElementById("gcal-badge");
+    const gcalBadgeSpan = document.getElementById("gcal-status-badge-text") || document.getElementById("gcal-badge");
     const gcalText = document.getElementById("gcal-status-text");
     const waBadge = document.getElementById("wa-badge");
 
-    if (gcalBadge && data.google_calendar) {
-      gcalBadge.textContent = data.google_calendar.connected ? "Connected" : "Ready";
-      gcalText.textContent = `Target: ${data.google_calendar.calendar_name}`;
+    if (data.google_calendar) {
+      if (gcalBadgeSpan) gcalBadgeSpan.textContent = data.google_calendar.status_label || (data.google_calendar.connected ? "Connected (OAuth)" : "1-Click Web & .ics Ready");
+      if (gcalText) gcalText.textContent = `Target: ${data.google_calendar.calendar_name}`;
     }
     if (waBadge && data.whatsapp) {
-      waBadge.textContent = data.whatsapp.configured ? "Live API" : "Simulated Online";
+      waBadge.textContent = data.whatsapp.configured ? "Meta Graph API Live" : "1-Click Web Ready";
     }
   } catch (err) {
     console.warn("Could not check integration statuses:", err);
@@ -1698,23 +1698,62 @@ function closeIntegrationsModal() {
 
 async function triggerCalendarSync() {
   try {
-    showToast("Synchronizing milestones with Google Calendar...", "info", 1800);
+    showToast("Packaging milestones for Google Calendar...", "info", 1800);
     const res = await fetch("/api/integrations/google-calendar/sync", { method: "POST" });
     const data = await res.json();
     if (data.success) {
-      showToast(data.message, "success", 4000);
+      // 1. Open Google Calendar web event creation modal directly in a new tab
+      if (data.web_url) {
+        window.open(data.web_url, "_blank");
+      }
+      // 2. Download RFC 5545 universal .ics file with alarms
+      const link = document.createElement("a");
+      link.href = data.ics_url || "/api/calendar/export.ics";
+      link.download = "chronos_milestones.ics";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast("Opened Google Calendar in new tab & exported chronos_milestones.ics with -24h, -2h, -30m alarms.", "success", 4500);
+      refreshIntegrations();
     } else {
-      showToast("Sync warning: " + (data.message || "Failed to push"), "warning");
+      showToast("Calendar sync notice: " + (data.message || "Failed to package milestones"), "warning");
     }
   } catch (err) {
     showToast("Calendar sync failed: " + err.message, "error");
   }
 }
 
+function downloadIcsCalendar() {
+  const link = document.createElement("a");
+  link.href = "/api/calendar/export.ics";
+  link.download = "chronos_milestones.ics";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("Downloaded chronos_milestones.ics file with all milestone alarms.", "success", 3000);
+}
+
+async function verifyLocalDatabase() {
+  try {
+    showToast("Running SQLite integrity check (PRAGMA integrity_check)...", "info", 1500);
+    const res = await fetch("/api/database/verify");
+    const data = await res.json();
+    if (data.status === "HEALTHY") {
+      const summary = Object.entries(data.row_counts).map(([k, v]) => `${k}: ${v}`).join(", ");
+      showToast(`Database healthy (${data.integrity_check}). Tables: ${summary}`, "success", 4500);
+    } else {
+      showToast(`Database notice: ${data.integrity_check}`, "warning");
+    }
+  } catch (err) {
+    showToast("Database check failed: " + err.message, "error");
+  }
+}
+
 async function triggerWhatsAppBriefing() {
   const phone = document.getElementById("wa-phone-input")?.value?.trim() || "+15550199";
   try {
-    showToast(`Dispatching executive briefing to ${phone}...`, "info", 2000);
+    showToast(`Preparing executive briefing for ${phone}...`, "info", 1800);
     const res = await fetch("/api/integrations/whatsapp/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1722,9 +1761,12 @@ async function triggerWhatsAppBriefing() {
     });
     const data = await res.json();
     if (data.success) {
-      showToast(`Briefing dispatched to ${phone} successfully.`, "success");
+      if (data.whatsapp_web_url) {
+        window.open(data.whatsapp_web_url, "_blank");
+      }
+      showToast(`Briefing prepared. Opened WhatsApp with pre-filled message for ${phone}.`, "success", 4000);
     } else {
-      showToast("Dispatch error: " + (data.error || "Unknown"), "error");
+      showToast("WhatsApp alert notice: " + (data.error || "Unknown"), "warning");
     }
   } catch (err) {
     showToast("WhatsApp dispatch failed: " + err.message, "error");
@@ -2376,16 +2418,16 @@ async function loadAndRenderConnectors() {
     const res = await fetch("/api/integrations/status");
     const data = await res.json();
 
-    const gcalBadge = document.getElementById("gcal-badge");
+    const gcalBadgeSpan = document.getElementById("gcal-status-badge-text") || document.getElementById("gcal-badge");
     const gcalText = document.getElementById("gcal-status-text");
-    if (gcalBadge && data.google_calendar) {
-      gcalBadge.textContent = data.google_calendar.connected ? "Connected" : "Ready";
+    if (data.google_calendar) {
+      if (gcalBadgeSpan) gcalBadgeSpan.textContent = data.google_calendar.status_label || (data.google_calendar.connected ? "Connected (OAuth)" : "1-Click Web & .ics Ready");
       if (gcalText) gcalText.textContent = `Target: ${data.google_calendar.calendar_name}`;
     }
 
     const waBadge = document.getElementById("wa-badge");
     if (waBadge && data.whatsapp) {
-      waBadge.textContent = data.whatsapp.configured ? "Graph API v21.0 Online" : "Simulated Active";
+      waBadge.textContent = data.whatsapp.configured ? "Meta Graph API Live" : "1-Click Web Ready";
     }
   } catch (err) {
     console.warn("Could not refresh connector indicators:", err);
@@ -2395,7 +2437,7 @@ async function loadAndRenderConnectors() {
 async function triggerWhatsAppBriefingFromConnectors() {
   const phone = document.getElementById("connectors-wa-phone")?.value?.trim() || "+15550199";
   try {
-    showToast(`Dispatching live sentinel alert to ${phone}...`, "info", 1800);
+    showToast(`Preparing executive briefing for ${phone}...`, "info", 1800);
     const res = await fetch("/api/integrations/whatsapp/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -2403,9 +2445,12 @@ async function triggerWhatsAppBriefingFromConnectors() {
     });
     const data = await res.json();
     if (data.success) {
-      showToast(`Executive briefing delivered to ${phone}`, "success", 4000);
+      if (data.whatsapp_web_url) {
+        window.open(data.whatsapp_web_url, "_blank");
+      }
+      showToast(`Executive briefing prepared. Opened WhatsApp chat for ${phone}.`, "success", 4000);
     } else {
-      showToast("Dispatch error: " + (data.error || "Unknown"), "error");
+      showToast("WhatsApp alert notice: " + (data.error || "Unknown"), "warning");
     }
   } catch (err) {
     showToast("WhatsApp alert failed: " + err.message, "error");

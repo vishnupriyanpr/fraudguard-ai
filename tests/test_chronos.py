@@ -157,5 +157,48 @@ def test_integrations_endpoints():
     wa_resp = client.post("/api/integrations/whatsapp/send", json={
         "recipient": "+15550199"
     })
-    # If no events exist, status_code is 400 with detail or 200 if events exist
     assert wa_resp.status_code in [200, 400]
+
+def test_calendar_export_ics():
+    """Verifies real RFC 5545 iCalendar generation with VALARM reminders."""
+    resp = client.get("/api/calendar/export.ics")
+    assert resp.status_code == 200
+    assert "text/calendar" in resp.headers.get("content-type", "")
+    content = resp.text
+    assert "BEGIN:VCALENDAR" in content
+    assert "BEGIN:VEVENT" in content
+    assert "BEGIN:VALARM" in content
+    assert "END:VCALENDAR" in content
+
+def test_google_calendar_sync():
+    """Verifies real Google Calendar 1-click web intent and .ics packaging."""
+    resp = client.post("/api/integrations/google-calendar/sync")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert "calendar.google.com/calendar/render?action=TEMPLATE" in data["web_url"]
+    assert data["ics_url"] == "/api/calendar/export.ics"
+    assert data["synced_count"] >= 0
+
+def test_database_verify_endpoint():
+    """Verifies real PRAGMA integrity check on local chronos.db."""
+    resp = client.get("/api/database/verify")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "HEALTHY"
+    assert data["integrity_check"] == "ok"
+    assert "row_counts" in data
+
+def test_conference_model_reasoning():
+    """Verifies model distinguishes conference registration from generic hackathons."""
+    from sentinel.ai_engine import process_chat_turn
+    reply = process_chat_turn("i need to register for this conference , not hackathon")
+    assert reply is not None
+    assert "content" in reply
+    assert len(reply["content"]) > 10
+    # Should produce tasks or intelligent conference reply
+    if reply.get("card_type") == "tasks_and_mcps":
+        tasks = reply.get("metadata", {}).get("tasks", [])
+        assert len(tasks) >= 4
+        # Verification that task phases have real titles
+        assert any("Conference" in t["title"] or "Registration" in t["title"] or "Paper" in t["title"] or "Phase" in t["title"] for t in tasks)

@@ -172,7 +172,7 @@ def get_event(event_id: int) -> Optional[Dict[str, Any]]:
     conn.close()
     return dict(row) if row else None
 
-def update_event(event_id: int, title: Optional[str] = None, deadline: Optional[str] = None, status: Optional[str] = None):
+def update_event(event_id: int, title: Optional[str] = None, deadline: Optional[str] = None, status: Optional[str] = None, category: Optional[str] = None, description: Optional[str] = None):
     conn = get_connection()
     cursor = conn.cursor()
     fields = []
@@ -186,6 +186,12 @@ def update_event(event_id: int, title: Optional[str] = None, deadline: Optional[
     if status:
         fields.append("status = ?")
         vals.append(status)
+    if category:
+        fields.append("category = ?")
+        vals.append(category)
+    if description:
+        fields.append("description = ?")
+        vals.append(description)
     if fields:
         vals.append(event_id)
         cursor.execute(f"UPDATE events SET {', '.join(fields)} WHERE id = ?", tuple(vals))

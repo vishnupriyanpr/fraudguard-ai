@@ -10,12 +10,61 @@ import time
 import sqlite3
 import subprocess
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from urllib.parse import quote, urlencode
+
+def escape_ics(text: Optional[str]) -> str:
+    """Escapes special characters according to RFC 5545 specification."""
+    if not text:
+        return ""
+    clean = str(text).replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
+    clean = clean.replace("\r\n", "\\n").replace("\n", "\\n").replace("\r", "\\n")
+    return clean
+
+def parse_flexible_datetime(dt_str: Optional[str]) -> Optional[datetime]:
+    """Parses various date/time formats into a UTC datetime object."""
+    if not dt_str:
+        return None
+    cleaned = str(dt_str).strip()
+    formats = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M",
+        "%Y-%m-%dT%H:%M:%S.%f",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%dT%H:%M",
+        "%Y-%m-%d",
+        "%d-%m-%Y %H:%M",
+        "%d/%m/%Y %H:%M",
+        "%b %d, %Y %I:%M %p",
+        "%B %d, %Y %I:%M %p",
+        "%b %d, %Y",
+        "%B %d, %Y"
+    ]
+    parsed_dt = None
+    for fmt in formats:
+        try:
+            parsed_dt = datetime.strptime(cleaned.replace("Z", ""), fmt)
+            break
+        except ValueError:
+            pass
+    if parsed_dt is None:
+        try:
+            from dateutil import parser
+            parsed_dt = parser.parse(cleaned)
+        except Exception:
+            return None
+            
+    if parsed_dt:
+        if parsed_dt.tzinfo is None:
+            parsed_dt = parsed_dt.replace(tzinfo=timezone.utc)
+        else:
+            parsed_dt = parsed_dt.astimezone(timezone.utc)
+    return parsed_dt
 
 # ── Google Calendar Connector ──────────────────────────────────────────
 
 class GoogleCalendarConnector:
-    """Manages Google Calendar OAuth2 authentication, event sync, and reminder triggers."""
+    """Manages Google Calendar 1-click web creation, RFC 5545 iCalendar generation, and OAuth2 event sync."""
     
     def __init__(self):
         self.client_id = os.getenv("GOOGLE_CLIENT_ID", "")
@@ -31,17 +80,18 @@ class GoogleCalendarConnector:
             "name": "Google Calendar Connector",
             "connected": self._connected,
             "calendar_name": self.calendar_name,
-            "mode": "live" if self._connected else "simulation",
-            "last_synced": datetime.now().isoformat() if self._synced_events else None,
+            "mode": "live_oauth" if self._connected else "web_intent_and_ics",
+            "status_label": "Connected (OAuth)" if self._connected else "1-Click Web & .ics Ready",
+            "export_ics_url": "/api/calendar/export.ics",
+            "last_synced": datetime.now(timezone.utc).isoformat() if self._synced_events else None,
             "synced_count": len(self._synced_events)
         }
 
     def generate_auth_url(self) -> str:
         """Returns OAuth2 authorization URL for consent."""
         if not self.client_id:
-            return "https://accounts.google.com/o/oauth2/v2/auth?client_id=SIMULATED_CHRONOS_ID&redirect_uri=" + self.redirect_uri + "&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent"
+            return "https://accounts.google.com/o/oauth2/v2/auth?client_id=CHRONOS_LOCAL&redirect_uri=" + self.redirect_uri + "&response_type=code&scope=https://www.googleapis.com/auth/calendar.events&access_type=offline&prompt=consent"
         
-        from urllib.parse import urlencode
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
@@ -52,37 +102,183 @@ class GoogleCalendarConnector:
         }
         return f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
 
-    def sync_milestones(self, event_title: str, tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def build_google_calendar_url(self, title: str, start_dt: Optional[datetime], end_dt: Optional[datetime], description: str = "", location: str = "CHRONOS Workspace") -> str:
         """
-        Synchronizes CHRONOS milestone tasks into calendar events with tiered reminders.
+        Builds a real 1-click Google Calendar web event creation URL.
+        Opens directly in calendar.google.com with pre-filled title, dates, and details.
         """
-        synced = []
-        for t in tasks:
-            due = t.get("due_date") or datetime.now().strftime("%Y-%m-%d %H:%M")
-            event_payload = {
-                "id": f"gcal_task_{t.get('id')}",
-                "summary": f"[CHRONOS] {t.get('title')}",
-                "description": f"Phase: {t.get('phase', 'Setup')}\nPriority: {t.get('priority', 'high')}\nAssigned MCP: {t.get('assigned_mcp', 'None')}\nEvent: {event_title}",
-                "start": due,
-                "end": due,
-                "colorId": "11" if t.get("priority") == "critical" else "5",
-                "reminders": [
-                    {"method": "popup", "minutes": 1440},
-                    {"method": "popup", "minutes": 120},
-                    {"method": "popup", "minutes": 30}
-                ],
-                "status": "confirmed"
-            }
-            synced.append(event_payload)
+        now = datetime.now(timezone.utc)
+        if not end_dt:
+            end_dt = now + timedelta(days=2)
+        if not start_dt:
+            start_dt = max(now, end_dt - timedelta(hours=1))
+        if start_dt >= end_dt:
+            start_dt = end_dt - timedelta(hours=1)
+            
+        start_str = start_dt.strftime("%Y%m%dT%H%M%SZ")
+        end_str = end_dt.strftime("%Y%m%dT%H%M%SZ")
         
-        self._synced_events = synced
-        self._connected = True
+        url = (
+            f"https://calendar.google.com/calendar/render?action=TEMPLATE"
+            f"&text={quote(title)}"
+            f"&dates={start_str}/{end_str}"
+            f"&details={quote(description)}"
+            f"&location={quote(location)}"
+            f"&sf=true&output=xml"
+        )
+        return url
+
+    def generate_icalendar(self, event_title: str, event_deadline: Optional[str], tasks: List[Dict[str, Any]]) -> str:
+        """
+        Generates RFC 5545 compliant iCalendar (.ics) format with tiered VALARM reminders.
+        Directly importable into Google Calendar, Outlook, and Apple Calendar.
+        """
+        now_dt = datetime.now(timezone.utc)
+        now_str = now_dt.strftime("%Y%m%dT%H%M%SZ")
+        
+        deadline_dt = parse_flexible_datetime(event_deadline) or (now_dt + timedelta(days=2))
+        start_event_dt = max(now_dt, deadline_dt - timedelta(hours=2))
+        
+        lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//CHRONOS Sentinel//Timeline & Milestones Engine//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "X-WR-CALNAME:CHRONOS // Deadlines & Sprints",
+            "X-WR-TIMEZONE:UTC",
+            "BEGIN:VEVENT",
+            f"UID:chronos-deadline-{int(now_dt.timestamp())}@chronos.workspace",
+            f"DTSTAMP:{now_str}",
+            f"DTSTART:{start_event_dt.strftime('%Y%m%dT%H%M%SZ')}",
+            f"DTEND:{deadline_dt.strftime('%Y%m%dT%H%M%SZ')}",
+            f"SUMMARY:[CHRONOS FINAL DEADLINE] {escape_ics(event_title)}",
+            f"DESCRIPTION:CHRONOS Sentinel Project Deadline\\nEvent: {escape_ics(event_title)}\\nTotal Milestones: {len(tasks)}\\nWorkspace: http://127.0.0.1:8000",
+            "LOCATION:CHRONOS Workspace",
+            "STATUS:CONFIRMED",
+            "PRIORITY:1",
+            "BEGIN:VALARM",
+            "TRIGGER:-PT24H",
+            "ACTION:DISPLAY",
+            "DESCRIPTION:Reminder: 24h until CHRONOS submission gate",
+            "END:VALARM",
+            "BEGIN:VALARM",
+            "TRIGGER:-PT2H",
+            "ACTION:DISPLAY",
+            "DESCRIPTION:Critical: 2h until CHRONOS final deadline",
+            "END:VALARM",
+            "BEGIN:VALARM",
+            "TRIGGER:-PT30M",
+            "ACTION:DISPLAY",
+            "DESCRIPTION:Emergency: 30m until CHRONOS final deadline",
+            "END:VALARM",
+            "END:VEVENT"
+        ]
+        
+        for t in tasks:
+            t_id = t.get("id", 0)
+            t_title = t.get("title", f"Milestone #{t_id}")
+            t_phase = t.get("phase", "Execution")
+            t_priority = t.get("priority", "high")
+            t_mcp = t.get("assigned_mcp", "Native CLI")
+            t_due_str = t.get("due_date", "")
+            
+            t_end_dt = parse_flexible_datetime(t_due_str) or (now_dt + timedelta(hours=6))
+            t_start_dt = max(now_dt, t_end_dt - timedelta(hours=1))
+            
+            desc = (
+                f"Phase: {t_phase}\\n"
+                f"Priority: {t_priority.upper()}\\n"
+                f"Assigned MCP: {t_mcp}\\n"
+                f"Status: {t.get('status', 'pending')}\\n"
+                f"Workspace: http://127.0.0.1:8000"
+            )
+            
+            lines.extend([
+                "BEGIN:VEVENT",
+                f"UID:chronos-task-{t_id}-{int(now_dt.timestamp())}@chronos.workspace",
+                f"DTSTAMP:{now_str}",
+                f"DTSTART:{t_start_dt.strftime('%Y%m%dT%H%M%SZ')}",
+                f"DTEND:{t_end_dt.strftime('%Y%m%dT%H%M%SZ')}",
+                f"SUMMARY:[CHRONOS] {escape_ics(t_title)}",
+                f"DESCRIPTION:{escape_ics(desc)}",
+                "LOCATION:CHRONOS Workspace",
+                "STATUS:CONFIRMED",
+                "BEGIN:VALARM",
+                "TRIGGER:-PT2H",
+                "ACTION:DISPLAY",
+                f"DESCRIPTION:Milestone gate due in 2 hours: {escape_ics(t_title)}",
+                "END:VALARM",
+                "BEGIN:VALARM",
+                "TRIGGER:-PT30M",
+                "ACTION:DISPLAY",
+                f"DESCRIPTION:Milestone gate due in 30 minutes: {escape_ics(t_title)}",
+                "END:VALARM",
+                "END:VEVENT"
+            ])
+            
+        lines.append("END:VCALENDAR")
+        return "\r\n".join(lines) + "\r\n"
+
+    def sync_milestones(self, event_title: str, tasks: List[Dict[str, Any]], event_deadline: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Synchronizes CHRONOS milestone tasks:
+        - Real 1-click Google Calendar web event URL
+        - RFC 5545 .ics package with tiered alarms (-24h, -2h, -30m)
+        - Direct Google API dispatch if OAuth credentials exist
+        """
+        now_dt = datetime.now(timezone.utc)
+        deadline_dt = parse_flexible_datetime(event_deadline) or (now_dt + timedelta(days=2))
+        start_event_dt = max(now_dt, deadline_dt - timedelta(hours=2))
+        
+        task_bullets = "\n".join([f"• [{t.get('priority', 'high').upper()}] {t.get('title')} ({t.get('phase', 'Setup')})" for t in tasks[:6]])
+        main_desc = (
+            f"CHRONOS Sentinel Project Deadline\n"
+            f"Project: {event_title}\n\n"
+            f"Key Milestone Gates ({len(tasks)} total):\n{task_bullets}\n\n"
+            f"Workspace: http://127.0.0.1:8000\n"
+            f"Automated Alert Gates: 24h, 2h, and 30m prior to deadline."
+        )
+        
+        main_web_url = self.build_google_calendar_url(
+            title=f"[CHRONOS FINAL DEADLINE] {event_title}",
+            start_dt=start_event_dt,
+            end_dt=deadline_dt,
+            description=main_desc,
+            location="CHRONOS Workspace"
+        )
+        
+        task_events = []
+        for t in tasks:
+            t_due = parse_flexible_datetime(t.get("due_date")) or (now_dt + timedelta(hours=4))
+            t_start = max(now_dt, t_due - timedelta(hours=1))
+            t_desc = f"Phase: {t.get('phase', 'Setup')}\nPriority: {t.get('priority', 'high')}\nAssigned MCP: {t.get('assigned_mcp', 'None')}\nWorkspace: http://127.0.0.1:8000"
+            t_url = self.build_google_calendar_url(
+                title=f"[CHRONOS] {t.get('title')}",
+                start_dt=t_start,
+                end_dt=t_due,
+                description=t_desc
+            )
+            task_events.append({
+                "id": t.get("id"),
+                "title": t.get("title"),
+                "due": t.get("due_date"),
+                "web_url": t_url
+            })
+            
+        self._synced_events = task_events
+        
         return {
             "success": True,
             "calendar": self.calendar_name,
-            "synced_count": len(synced),
-            "events": synced,
-            "message": f"Successfully synchronized {len(synced)} milestone events to Google Calendar '{self.calendar_name}' with 24h, 2h, and 30m reminders."
+            "synced_count": len(tasks),
+            "web_url": main_web_url,
+            "ics_url": "/api/calendar/export.ics",
+            "task_urls": task_events,
+            "connected": self._connected,
+            "mode": "live_oauth" if self._connected else "web_intent_and_ics",
+            "status_label": "Connected (OAuth)" if self._connected else "1-Click Web & .ics Ready",
+            "message": f"Packaged {len(tasks)} milestones with tiered alarms (-24h, -2h, -30m). Opening Google Calendar web event creator & exporting chronos_milestones.ics."
         }
 
 
@@ -134,6 +330,9 @@ class WhatsAppCloudConnector:
             f"_Reply 'DONE <task_id>' or 'SNOOZE 2h' to update status._"
         )
         
+        clean_phone = target.replace("+", "").replace(" ", "").replace("-", "")
+        whatsapp_web_url = f"https://api.whatsapp.com/send?phone={clean_phone}&text={quote(message_body)}"
+        
         if self.token and self.phone_number_id:
             # Live dispatch via Meta Graph API v21.0
             url = f"https://graph.facebook.com/v21.0/{self.phone_number_id}/messages"
@@ -143,7 +342,7 @@ class WhatsAppCloudConnector:
             }
             payload = {
                 "messaging_product": "whatsapp",
-                "to": target.replace("+", "").replace(" ", ""),
+                "to": clean_phone,
                 "type": "text",
                 "text": {"body": message_body}
             }
@@ -154,19 +353,26 @@ class WhatsAppCloudConnector:
                     "provider": "meta_cloud_api",
                     "status_code": resp.status_code,
                     "target": target,
+                    "whatsapp_web_url": whatsapp_web_url,
                     "response": resp.json() if resp.status_code == 200 else resp.text
                 }
             except Exception as e:
-                return {"success": False, "provider": "meta_cloud_api", "error": str(e)}
+                return {
+                    "success": False,
+                    "provider": "meta_cloud_api",
+                    "whatsapp_web_url": whatsapp_web_url,
+                    "error": str(e)
+                }
 
-        # Simulation mode for local standalone development
+        # 1-click Web Intent Dispatch (Direct WhatsApp Web / Mobile opening)
         return {
             "success": True,
-            "provider": "simulation_engine",
+            "provider": "whatsapp_web_intent",
             "target": target,
+            "whatsapp_web_url": whatsapp_web_url,
             "message": message_body,
-            "timestamp": datetime.now().isoformat(),
-            "note": "Simulated dispatch successful. Configure WHATSAPP_TOKEN & WHATSAPP_PHONE_NUMBER_ID for live Graph API delivery."
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "note": "Ready to send directly via WhatsApp Web or mobile app intent."
         }
 
 

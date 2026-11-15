@@ -10,15 +10,6 @@
         "GITHUB_PERSONAL_ACCESS_TOKEN": "<GITHUB_PERSONAL_ACCESS_TOKEN_VALUE>"
       }
     },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "."
-      ],
-      "env": {}
-    },
     "chrome-devtools": {
       "command": "npx",
       "args": [
@@ -27,12 +18,12 @@
       ],
       "env": {}
     },
-    "sqlite": {
-      "command": "uvx",
+    "filesystem": {
+      "command": "npx",
       "args": [
-        "mcp-server-sqlite",
-        "--db-path",
-        "chronos.db"
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."
       ],
       "env": {}
     }

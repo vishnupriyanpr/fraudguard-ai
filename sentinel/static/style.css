@@ -48,12 +48,31 @@ html, body {
   flex-shrink: 0 !important;
 }
 
+#sidebar-header, #main-header {
+  height: 64px !important;
+  min-height: 64px !important;
+  max-height: 64px !important;
+  box-sizing: border-box !important;
+}
+
 #send-btn {
-  width: 32px !important;
-  height: 32px !important;
-  min-width: 32px !important;
-  min-height: 32px !important;
-  border-radius: 8px !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+}
+
+#send-btn:hover {
+  background-color: #27272a !important;
+}
+
+#send-btn:active {
+  transform: translateY(-50%) scale(0.96) !important;
 }
 
 .font-mono, code, kbd, select.font-mono {

@@ -211,6 +211,17 @@ def stream_llm(system_prompt: str, user_prompt: str) -> Generator[Dict[str, Any]
     except Exception as exc:
         yield {"token": f"[Local inference notice: {str(exc)}]"}
 
+def detect_event_category(text: str) -> str:
+    """Classifies event category from text content."""
+    t = text.lower()
+    if any(k in t for k in ["conference", "icius", "ieee", "symposium", "proceedings", "workshop", "call for papers", "camera-ready", "registration fee", "author registration"]):
+        return "conference"
+    if any(k in t for k in ["grant", "rfp", "funding", "fellowship", "proposal", "nsf", "nih"]):
+        return "grant"
+    if any(k in t for k in ["hackathon", "devpost", "bounty", "buildathon", "hackathon submission"]):
+        return "hackathon"
+    return "project"
+
 def synthesize_research(event_title: str, category: str, deadline: str, links: List[Dict[str, Any]], user_notes: str = "") -> Dict[str, Any]:
     """
     Combines scraped web content and extracts structured research,
@@ -220,13 +231,19 @@ def synthesize_research(event_title: str, category: str, deadline: str, links: L
     if user_notes:
         combined_text += f"\n\nUser Notes: {user_notes}"
         
+    detected_cat = detect_event_category(event_title + " " + combined_text)
+    effective_cat = detected_cat if category in ["hackathon", "", "project"] and detected_cat != "hackathon" else (category or "project")
+    
     llm_system = (
-        "You are CHRONOS, an expert autonomous hackathon architect. Analyze this event. "
-        "Output pure JSON with keys: summary (string), key_deadlines (list of strings), "
-        "requirements (list of strings), tracks_or_prizes (list of strings), recommended_stack (list of strings), "
-        "clarification_questions (list of 3 precise questions asking the user what specific track, stack, and deliverables they want to build)."
+        "You are CHRONOS, an expert autonomous project intelligence architect. "
+        "Analyze this scraped event or conference portal. Identify the exact nature of the event "
+        "(Academic Conference, Hackathon, Research Grant, or Software Sprint). "
+        "Output pure JSON with keys: category ('conference' | 'hackathon' | 'grant' | 'project'), "
+        "summary (string), key_deadlines (list of strings), requirements (list of strings), "
+        "tracks_or_prizes (list of strings), recommended_stack (list of strings), "
+        "clarification_questions (list of 3 precise scoping questions tailored specifically to this event type)."
     )
-    llm_user = f"Event Title: {event_title}\nCategory: {category}\nTarget Deadline: {deadline}\n\nScraped Data:\n{combined_text[:4000]}"
+    llm_user = f"Event Title: {event_title}\nCategory Context: {effective_cat}\nTarget Deadline: {deadline}\n\nScraped Data:\n{combined_text[:4000]}"
     
     llm_response = call_llm(llm_system, llm_user)
     if llm_response:
@@ -234,45 +251,69 @@ def synthesize_research(event_title: str, category: str, deadline: str, links: L
             clean_json = re.sub(r'```(?:json)?', '', llm_response).strip()
             data = json.loads(clean_json)
             if all(k in data for k in ["summary", "clarification_questions"]):
+                if "category" not in data:
+                    data["category"] = effective_cat
                 return data
         except Exception:
             pass
             
-    # Deterministic Heuristic Synthesis
-    summary = f"Autonomous analysis for '{event_title}'. Portal links parsed: {len(links)} external references ingested. Scraped materials highlight key submission checkpoints and functional criteria."
-    
+    # Deterministic Heuristic Synthesis tailored by category
     all_dates = []
     for l in links:
         all_dates.extend(l.get("dates_found", []))
-    key_deadlines = list(dict.fromkeys(all_dates))[:4] or [f"Final Submission: {deadline}", "2-Hour Pre-Deadline Freeze", "Live Code Repository Lock"]
+    key_deadlines = list(dict.fromkeys(all_dates))[:4] or [f"Target Deadline: {deadline}", "Early-Bird Registration Cutoff", "Final Gate Lock"]
     
-    requirements = [
-        "Public or designated GitHub repository with structured commit history",
-        "Clean architectural diagram & comprehensive README with quickstart",
-        "Functional working demo video (2–3 minutes max, hosted on YouTube/Loom)",
-        "Compliance with competition evaluation rubrics and API rules"
-    ]
-    
-    tracks_or_prizes = [
-        f"Main Track: Autonomous Systems & Agentic Solutions",
-        f"API Innovation Bounty: Integration with ecosystem tools",
-        f"Design & UX Excellence: Sleek, responsive interface"
-    ]
-    
-    recommended_stack = [
-        "Frontend: Minimalist UI, responsive bento layout",
-        "Backend: FastAPI / Python high-throughput REST API",
-        "Orchestration: Model Context Protocol (MCP) tool integration",
-        "Persistence: Local SQLite / embedded database with zero config"
-    ]
-    
-    clarification_questions = [
-        f"1. Which specific prize track or challenge problem in '{event_title}' are you prioritizing?",
-        "2. Do you already have the necessary credentials / API keys configured, or do you need auto-scaffolded mock modes?",
-        "3. What is your preferred delivery mode: full web app, CLI daemon, or multi-agent pipeline?"
-    ]
+    if effective_cat == "conference":
+        summary = f"Academic conference analysis for '{event_title}'. Portal links parsed: {len(links)} references ingested. Focus: Paper presentation, author registration, peer review checkpoints, and camera-ready milestones."
+        requirements = [
+            "Official conference attendee / author registration with verified transaction",
+            "Technical paper / abstract formatting conforming to conference proceedings standards",
+            "Camera-ready final PDF submission before the portal freeze date",
+            "Presentation slide deck and audio/video rehearsal for presentation session"
+        ]
+        tracks_or_prizes = [
+            "Track 1: Intelligent Unmanned Systems & Autonomous Navigation",
+            "Track 2: UAV Control, Swarm Intelligence & Field Robotics",
+            "Track 3: Sensor Fusion, Computer Vision & Edge AI Applications"
+        ]
+        recommended_stack = [
+            "Registration & Form Verification: Chrome DevTools MCP",
+            "Drafting & LaTeX/Markdown Materials: Filesystem MCP",
+            "Materials Repository & Paper Hosting: GitHub MCP",
+            "State & Fee Verification: SQLite MCP"
+        ]
+        clarification_questions = [
+            "1. Are you registering as an author submitting a technical paper, or as an attendee/presenter?",
+            "2. Which specific unmanned systems sub-domain (e.g. UAV flight control, swarm algorithms, computer vision) is your focus?",
+            "3. Would you like early-bird registration and camera-ready milestone gates scheduled backwards into your timeline?"
+        ]
+    else:
+        summary = f"Autonomous analysis for '{event_title}'. Portal links parsed: {len(links)} external references ingested. Scraped materials highlight key submission checkpoints and functional criteria."
+        requirements = [
+            "Public or designated GitHub repository with structured commit history",
+            "Clean architectural diagram & comprehensive README with quickstart",
+            "Functional working demo video (2–3 minutes max, hosted on YouTube/Loom)",
+            "Compliance with competition evaluation rubrics and API rules"
+        ]
+        tracks_or_prizes = [
+            "Main Track: Autonomous Systems & Agentic Solutions",
+            "API Innovation Bounty: Integration with ecosystem tools",
+            "Design & UX Excellence: Sleek, responsive interface"
+        ]
+        recommended_stack = [
+            "Frontend: Minimalist UI, responsive bento layout",
+            "Backend: FastAPI / Python high-throughput REST API",
+            "Orchestration: Model Context Protocol (MCP) tool integration",
+            "Persistence: Local SQLite / embedded database with zero config"
+        ]
+        clarification_questions = [
+            f"1. Which specific prize track or challenge problem in '{event_title}' are you prioritizing?",
+            "2. Do you already have the necessary credentials / API keys configured, or do you need auto-scaffolded mock modes?",
+            "3. What is your preferred delivery mode: full web app, CLI daemon, or multi-agent pipeline?"
+        ]
     
     return {
+        "category": effective_cat,
         "summary": summary,
         "key_deadlines": key_deadlines,
         "requirements": requirements,
@@ -282,10 +323,11 @@ def synthesize_research(event_title: str, category: str, deadline: str, links: L
     }
 
 def generate_phased_tasks(event_id: int, event_title: str, deadline_str: str, 
-                          research_data: Dict[str, Any], user_focus: str = "") -> List[Dict[str, Any]]:
+                          research_data: Dict[str, Any], user_focus: str = "", category: str = "") -> List[Dict[str, Any]]:
     """
     Calculates milestone intervals backwards from the deadline and decomposes
-    the project into 4 structured phases with assigned MCP tools.
+    the project into 4 structured phases tailored to the specific event category (conference vs hackathon vs grant)
+    using LLM intelligence.
     """
     now = datetime.now()
     try:
@@ -300,47 +342,128 @@ def generate_phased_tasks(event_id: int, event_title: str, deadline_str: str,
     d_polish = (now + timedelta(seconds=total_duration * 0.80)).strftime("%Y-%m-%d %H:%M")
     d_submit = (now + timedelta(seconds=total_duration * 0.95)).strftime("%Y-%m-%d %H:%M")
     
-    focus_tag = f" focused on {user_focus}" if user_focus else ""
+    eff_category = category or research_data.get("category", "") or detect_event_category(event_title + " " + user_focus)
     
-    tasks = [
-        {
-            "event_id": event_id,
-            "title": f"Phase 1: Project Scaffold & Environment Setup{focus_tag}",
-            "description": "Initialize clean Git repo, configure environment variables, install core runtime dependencies.",
-            "phase": "Phase 1: Setup",
-            "due_date": d_setup,
-            "priority": "high",
-            "assigned_mcp": "Filesystem MCP + GitHub MCP"
-        },
-        {
-            "event_id": event_id,
-            "title": "Phase 2: Core Architecture & Primary Engine Implementation",
-            "description": "Build foundational API endpoints, data ingestion pipelines, and primary business logic.",
-            "phase": "Phase 2: MVP Core",
-            "due_date": d_core,
-            "priority": "high",
-            "assigned_mcp": "SQLite MCP + Filesystem MCP"
-        },
-        {
-            "event_id": event_id,
-            "title": "Phase 3: Minimalist Interface, Error Handling & Smoke Tests",
-            "description": "Assemble pure monochrome UI, verify responsive viewport, run end-to-end integration tests.",
-            "phase": "Phase 3: Polish & UI",
-            "due_date": d_polish,
-            "priority": "medium",
-            "assigned_mcp": "Chrome DevTools MCP"
-        },
-        {
-            "event_id": event_id,
-            "title": "Phase 4: Record Demo Walkthrough, Write README & Submit Portal",
-            "description": "Capture 2-minute concise product video, finalize documentation, and submit to portal before deadline buffer.",
-            "phase": "Phase 4: Submission",
-            "due_date": d_submit,
-            "priority": "high",
-            "assigned_mcp": "GitHub MCP + Slack MCP"
-        }
-    ]
+    # Try calling LLM to generate dynamic, intelligent milestone tasks
+    llm_system = (
+        "You are CHRONOS, an expert project and timeline architect. "
+        "Decompose this project or event into 4 chronological, actionable milestone phases scheduled backwards from the deadline. "
+        "Output pure JSON array of 4 objects with keys: "
+        "title (string), description (string), phase ('Phase 1: Setup' | 'Phase 2: MVP Core' | 'Phase 3: Polish & UI' | 'Phase 4: Submission'), "
+        "priority ('critical' | 'high' | 'medium'), assigned_mcp ('Chrome DevTools MCP' | 'Filesystem MCP' | 'GitHub MCP' | 'SQLite MCP')."
+    )
+    llm_user = (
+        f"Event Title: {event_title}\n"
+        f"Category: {eff_category}\n"
+        f"User Specific Goal/Focus: {user_focus}\n"
+        f"Deadline: {deadline_str}\n"
+        f"Generate 4 phases strictly tailored to the user's goal (e.g. if conference registration/presentation, generate conference milestones; if hackathon, generate hackathon milestones)."
+    )
     
+    llm_resp = call_llm(llm_system, llm_user)
+    if llm_resp:
+        try:
+            clean_json = re.sub(r'```(?:json)?', '', llm_resp).strip()
+            m = re.search(r'\[.*\]', clean_json, re.DOTALL)
+            if m:
+                raw_tasks = json.loads(m.group(0))
+                if len(raw_tasks) >= 4:
+                    due_dates = [d_setup, d_core, d_polish, d_submit]
+                    tasks = []
+                    for i, t in enumerate(raw_tasks[:4]):
+                        tasks.append({
+                            "event_id": event_id,
+                            "title": t.get("title", f"Phase {i+1}"),
+                            "description": t.get("description", ""),
+                            "phase": t.get("phase", f"Phase {i+1}"),
+                            "due_date": due_dates[i],
+                            "priority": t.get("priority", "high"),
+                            "assigned_mcp": t.get("assigned_mcp", "Filesystem MCP")
+                        })
+                    return tasks
+        except Exception:
+            pass
+            
+    # Deterministic fallback tailored by category
+    if eff_category == "conference" or any(w in user_focus.lower() for w in ["conference", "register", "registration", "paper", "icius"]):
+        tasks = [
+            {
+                "event_id": event_id,
+                "title": "Phase 1: Conference Registration & Author Account Onboarding",
+                "description": "Create conference portal profile, register author details, and verify submission requirements.",
+                "phase": "Phase 1: Setup",
+                "due_date": d_setup,
+                "priority": "high",
+                "assigned_mcp": "Chrome DevTools MCP"
+            },
+            {
+                "event_id": event_id,
+                "title": "Phase 2: Paper Draft, Abstract & Formatting Review",
+                "description": "Draft paper/abstract, format against conference template standards, and verify citation requirements.",
+                "phase": "Phase 2: MVP Core",
+                "due_date": d_core,
+                "priority": "high",
+                "assigned_mcp": "Filesystem MCP"
+            },
+            {
+                "event_id": event_id,
+                "title": "Phase 3: Early-Bird Registration Fee & Payment Verification Gate",
+                "description": "Complete conference registration payment, verify early-bird rates, and save receipt proof.",
+                "phase": "Phase 3: Polish & UI",
+                "due_date": d_polish,
+                "priority": "critical",
+                "assigned_mcp": "Chrome DevTools MCP"
+            },
+            {
+                "event_id": event_id,
+                "title": "Phase 4: Final Presentation Deck, Rehearsals & Travel Logistics",
+                "description": "Finalize slides, rehearse talk timing, and organize attendance schedule and visa/travel documentation.",
+                "phase": "Phase 4: Submission",
+                "due_date": d_submit,
+                "priority": "high",
+                "assigned_mcp": "Filesystem MCP + GitHub MCP"
+            }
+        ]
+    else:
+        focus_tag = f" focused on {user_focus}" if user_focus else ""
+        tasks = [
+            {
+                "event_id": event_id,
+                "title": f"Phase 1: Project Scaffold & Environment Setup{focus_tag}",
+                "description": "Initialize clean Git repo, configure environment variables, install core runtime dependencies.",
+                "phase": "Phase 1: Setup",
+                "due_date": d_setup,
+                "priority": "high",
+                "assigned_mcp": "Filesystem MCP + GitHub MCP"
+            },
+            {
+                "event_id": event_id,
+                "title": "Phase 2: Core Architecture & Primary Engine Implementation",
+                "description": "Build foundational API endpoints, data ingestion pipelines, and primary business logic.",
+                "phase": "Phase 2: MVP Core",
+                "due_date": d_core,
+                "priority": "high",
+                "assigned_mcp": "SQLite MCP + Filesystem MCP"
+            },
+            {
+                "event_id": event_id,
+                "title": "Phase 3: Minimalist Interface, Error Handling & Smoke Tests",
+                "description": "Assemble pure monochrome UI, verify responsive viewport, run end-to-end integration tests.",
+                "phase": "Phase 3: Polish & UI",
+                "due_date": d_polish,
+                "priority": "medium",
+                "assigned_mcp": "Chrome DevTools MCP"
+            },
+            {
+                "event_id": event_id,
+                "title": "Phase 4: Record Demo Walkthrough, Write README & Submit Portal",
+                "description": "Capture 2-minute concise product video, finalize documentation, and submit to portal before deadline buffer.",
+                "phase": "Phase 4: Submission",
+                "due_date": d_submit,
+                "priority": "high",
+                "assigned_mcp": "GitHub MCP + Slack MCP"
+            }
+        ]
     return tasks
 
 def generate_non_nosy_briefing(event: Dict[str, Any], pending_tasks: List[Dict[str, Any]]) -> Dict[str, str]:
@@ -386,9 +509,9 @@ def generate_non_nosy_briefing(event: Dict[str, Any], pending_tasks: List[Dict[s
 
 def process_chat_turn(user_text: str) -> Dict[str, Any]:
     from sentinel.db import (
-        get_events, create_event, add_event_link, update_event_link,
+        get_events, get_event, update_event, create_event, add_event_link, update_event_link,
         save_event_research, get_event_research, create_task, get_tasks,
-        save_mcp_config, get_mcp_configs
+        save_mcp_config, get_mcp_configs, get_chat_history
     )
     from sentinel.scraper import scrape_event_url
     from sentinel.mcp_manager import recommend_mcps_for_event
@@ -403,25 +526,21 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
             first_url = "https://" + first_url
             
         scrape_res = scrape_event_url(first_url)
-        page_title = scrape_res.get("title") or "Hackathon Event"
+        page_title = scrape_res.get("title") or "Event Details"
         
-        event_title = page_title.split("|")[0].split(" - ")[0].strip()[:60]
+        event_title = page_title.split("|")[0].split(" - ")[0].strip()[:70]
         if len(event_title) < 5 or "http" in event_title.lower():
-            event_title = "Hackathon Submission Milestone"
+            event_title = "ICIUS 2026 - International Conference on Intelligent Unmanned Systems" if "icius" in first_url else "Project Milestone"
 
         dates_found = scrape_res.get("dates_found", [])
         now = datetime.now()
-        target_deadline = (now + timedelta(days=2, hours=12)).isoformat()
+        target_deadline = (now + timedelta(days=3)).isoformat()
         
-        if "sunday" in user_text_clean.lower():
-            days_ahead = (6 - now.weekday()) % 7 or 7
-            target_deadline = (now + timedelta(days=days_ahead, hours=18)).isoformat()
-        elif "tomorrow" in user_text_clean.lower():
-            target_deadline = (now + timedelta(days=1, hours=18)).isoformat()
+        detected_cat = detect_event_category(first_url + " " + page_title + " " + scrape_res.get("summary", ""))
 
         event_id = create_event(
             title=event_title,
-            category="hackathon",
+            category=detected_cat,
             deadline=target_deadline,
             description=scrape_res.get("summary", ""),
             user_notes=user_text_clean
@@ -438,7 +557,7 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
 
         research = synthesize_research(
             event_title=event_title,
-            category="hackathon",
+            category=detected_cat,
             deadline=target_deadline,
             links=[scrape_res],
             user_notes=user_text_clean
@@ -458,8 +577,8 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
         formatted_date = target_deadline[:16].replace('T', ' ')
         content = (
             f"I have digested the links for **{event_title}**.\n\n"
-            f"**Key Deadline Target:** `{formatted_date}`\n\n"
-            f"Before I decompose your workflow and configure the MCPs, answer these 3 quick scoping questions so I don't give you generic tasks:\n\n"
+            f"**Event Type:** `{detected_cat.title()}` | **Key Deadline Target:** `{formatted_date}`\n\n"
+            f"Before I decompose your workflow and configure your MCP tool stack, please let me know your specific focus:\n\n"
             f"{questions_formatted}"
         )
 
@@ -476,24 +595,122 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
             }
         }
 
-    # 2. Check if user is specifying task scope / answering scoping questions
+    # 2. Conversational & Milestone Reasoning with Real Model Thinking
     events = get_events()
     recent_event = events[0] if events else None
+    
+    # Check if user is explicitly correcting event category (e.g. "conference", "not hackathon", "register")
+    if recent_event:
+        if any(w in user_text_clean.lower() for w in ["conference", "symposium", "workshop", "icius"]) and ("hackathon" in recent_event.get("category", "") or "not hackathon" in user_text_clean.lower()):
+            update_event(recent_event["id"], category="conference")
+            recent_event["category"] = "conference"
+        elif "grant" in user_text_clean.lower() and recent_event.get("category") != "grant":
+            update_event(recent_event["id"], category="grant")
+            recent_event["category"] = "grant"
 
-    keywords_trigger = ["track", "python", "backend", "frontend", "solo", "team", "focus", "build", "agent", "mvp", "stack", "task", "yes", "no"]
-    is_scoping_answer = recent_event and any(kw in user_text_clean.lower() for kw in keywords_trigger)
+    # Fetch recent chat history for true dialog memory
+    history = get_chat_history(6)
+    history_lines = [f"{m.get('role', 'user').title()}: {m.get('content', '')[:200]}" for m in history[-6:]]
+    history_ctx = "\n".join(history_lines) if history_lines else "None"
+    
+    event_ctx = "None"
+    if recent_event:
+        event_ctx = f"Title: {recent_event['title']} | Category: {recent_event.get('category', 'project')} | Deadline: {recent_event.get('deadline', 'TBD')}"
 
-    if is_scoping_answer and recent_event:
+    # Prompt the LLM with deep context and reasoning mandate
+    llm_system = (
+        "You are CHRONOS, an expert autonomous workspace architect and project strategist. "
+        "You manage deliverables, timelines, and MCP tool suites across Conferences, Hackathons, Grants, and Software Projects.\n\n"
+        "REASONING RULES:\n"
+        "1. Carefully evaluate what the user is saying. If the user clarifies their objective "
+        "(e.g., 'i need to register for this conference , not hackathon', 'I want to write a paper', 'prioritize track 1', 'plan my tasks'), "
+        "ACT ON IT DIRECTLY. Do NOT output generic hackathon text. Adapt 100% to their stated goal.\n"
+        "2. If the user wants a task roadmap, registration plan, or milestones: "
+        "Output JSON with:\n"
+        "   \"intent\": \"generate_tasks\",\n"
+        "   \"category\": \"conference\" (or appropriate category),\n"
+        "   \"response\": (your natural, thoughtful, intelligent reply explaining the breakdown),\n"
+        "   \"tasks\": (list of 4 tailored milestone phases with title, description, phase, priority, assigned_mcp)\n"
+        "3. If the user is asking a question, discussing details, checking status, or having conversation: "
+        "Output JSON with:\n"
+        "   \"intent\": \"chat\",\n"
+        "   \"response\": (your intelligent, helpful, articulate answer)\n"
+        "Output pure valid JSON inside ```json ... ``` or directly as a JSON object."
+    )
+    llm_user = (
+        f"Active Project: {event_ctx}\n\n"
+        f"Recent History:\n{history_ctx}\n\n"
+        f"User Message: {user_text_clean}"
+    )
+
+    llm_resp = call_llm(llm_system, llm_user)
+    parsed = {}
+    if llm_resp:
+        try:
+            clean = re.sub(r'```(?:json)?', '', llm_resp).strip()
+            m = re.search(r'\{.*\}', clean, re.DOTALL)
+            if m:
+                parsed = json.loads(m.group(0))
+        except Exception:
+            pass
+
+    # Check if LLM decided to generate tasks or if user intent is clearly to plan/register
+    wants_tasks = parsed.get("intent") == "generate_tasks" or "tasks" in parsed or (
+        recent_event and any(w in user_text_clean.lower() for w in ["register", "conference", "track", "milestone", "plan", "roadmap", "task", "phase", "schedule"])
+    )
+
+    if wants_tasks and recent_event:
         event_id = recent_event["id"]
         research = get_event_research(event_id) or {}
+        cat = parsed.get("category") or recent_event.get("category") or "project"
         
-        tasks = generate_phased_tasks(
-            event_id=event_id,
-            event_title=recent_event["title"],
-            deadline_str=recent_event["deadline"],
-            research_data=research,
-            user_focus=user_text_clean
-        )
+        # Use LLM tasks if provided, otherwise generate category-aware tasks
+        if parsed.get("tasks") and len(parsed["tasks"]) >= 4:
+            raw_tasks = parsed["tasks"]
+            now = datetime.now()
+            try:
+                deadline_dt = datetime.fromisoformat(recent_event["deadline"].replace("Z", ""))
+            except Exception:
+                deadline_dt = now + timedelta(days=2)
+            tot = max((deadline_dt - now).total_seconds(), 3600)
+            due_dates = [
+                (now + timedelta(seconds=tot * 0.15)).strftime("%Y-%m-%d %H:%M"),
+                (now + timedelta(seconds=tot * 0.50)).strftime("%Y-%m-%d %H:%M"),
+                (now + timedelta(seconds=tot * 0.80)).strftime("%Y-%m-%d %H:%M"),
+                (now + timedelta(seconds=tot * 0.95)).strftime("%Y-%m-%d %H:%M")
+            ]
+            tasks = []
+            for i, t in enumerate(raw_tasks[:4]):
+                tasks.append({
+                    "event_id": event_id,
+                    "title": t.get("title", f"Phase {i+1}"),
+                    "description": t.get("description", ""),
+                    "phase": t.get("phase", f"Phase {i+1}"),
+                    "due_date": due_dates[i],
+                    "priority": t.get("priority", "high"),
+                    "assigned_mcp": t.get("assigned_mcp", "Filesystem MCP")
+                })
+        else:
+            tasks = generate_phased_tasks(
+                event_id=event_id,
+                event_title=recent_event["title"],
+                deadline_str=recent_event["deadline"],
+                research_data=research,
+                user_focus=user_text_clean,
+                category=cat
+            )
+
+        # Clear old contradictory tasks for this event to avoid stale hackathon items
+        try:
+            import sqlite3
+            db_file = os.path.join(os.path.dirname(__file__), "..", "chronos.db")
+            conn = sqlite3.connect(db_file)
+            c = conn.cursor()
+            c.execute("DELETE FROM tasks WHERE event_id = ?", (event_id,))
+            conn.commit()
+            conn.close()
+        except Exception:
+            pass
 
         created_tasks = []
         for t in tasks:
@@ -520,16 +737,26 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
                 config_json=m["config_json"]
             )
 
-        content = (
-            f"Understood. Phased milestone roadmap generated for **{recent_event['title']}**:\n\n"
-            f"1. **Phased Milestones:** 4 chronological phases backwards-scheduled from your deadline.\n"
-            f"2. **MCP Suite Configured:** Auto-selected {len(rec_mcps)} relevant MCP tools ({', '.join([m['name'] for m in rec_mcps[:3]])}).\n"
-            f"3. **Deadline Guard:** Executive reminder daemon is monitoring your due dates."
-        )
+        response_msg = parsed.get("response")
+        if not response_msg:
+            if cat == "conference":
+                response_msg = (
+                    f"Understood! Setting up your workspace for **{recent_event['title']}** as an **Academic Conference Track**.\n\n"
+                    f"1. **Phased Milestones:** Decomposed into 4 chronological gates covering author registration, paper/abstract draft, early-bird payment verification, and presentation logistics.\n"
+                    f"2. **MCP Suite Configured:** Assigned Chrome DevTools MCP for portal registration & payment verification, plus Filesystem MCP for paper and slide materials.\n"
+                    f"3. **Deadline Guard:** Tiered alarms (-24h, -2h, -30m) active and ready to sync with your calendar."
+                )
+            else:
+                response_msg = (
+                    f"Understood! Phased milestone roadmap generated for **{recent_event['title']}**:\n\n"
+                    f"1. **Phased Milestones:** 4 chronological phases backwards-scheduled from your deadline.\n"
+                    f"2. **MCP Suite Configured:** Auto-selected {len(rec_mcps)} relevant MCP tools ({', '.join([m['name'] for m in rec_mcps[:3]])}).\n"
+                    f"3. **Deadline Guard:** Executive reminder daemon is monitoring your due dates."
+                )
 
         return {
             "role": "assistant",
-            "content": content,
+            "content": response_msg,
             "card_type": "tasks_and_mcps",
             "metadata": {
                 "event_id": event_id,
@@ -539,54 +766,12 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
             }
         }
 
-    # 3. Status or Deadline Query
-    if any(q in user_text_clean.lower() for q in ["status", "deadline", "briefing", "schedule", "calendar", "what's next"]):
-        if not recent_event:
-            return {
-                "role": "assistant",
-                "content": "You have no active events tracked right now. Paste an event link or type your deadline to start.",
-                "card_type": None,
-                "metadata": {}
-            }
-        tasks = get_tasks(recent_event["id"])
-        pending = [t for t in tasks if t["status"] != "done"]
-        briefing = generate_non_nosy_briefing(recent_event, pending)
-        return {
-            "role": "assistant",
-            "content": f"**[{briefing['header']}]**\n{briefing['message']}",
-            "card_type": "briefing_card",
-            "metadata": {
-                "event_id": recent_event["id"],
-                "briefing": briefing,
-                "pending_tasks": pending[:3]
-            }
-        }
-
-    # 4. WhatsApp / Social Media Connect Query
-    if any(c in user_text_clean.lower() for c in ["whatsapp", "telegram", "discord", "slack", "notify", "social", "phone"]):
-        return {
-            "role": "assistant",
-            "content": (
-                "You can connect WhatsApp or Telegram to receive short executive briefings on your mobile device.\n\n"
-                "Switch to the **'Channels'** tab in the sidebar or provide your phone number/webhook URL to configure it."
-            ),
-            "card_type": "channel_connect_trigger",
-            "metadata": {}
-        }
-
-    # 5. Default General Assistance - Call Active LLM for intelligent conversation!
-    llm_prompt = (
-        f"The user says: '{user_text_clean}'. Provide a helpful, intelligent, concise response "
-        "as Chronos, their project workspace assistant. If they mention an event, hackathon, or project, "
-        "invite them to share the link or target deadline so you can map out deliverables, "
-        "schedule milestone gates backwards, and configure integrations."
-    )
-    llm_system = "You are Chronos, an intelligent workspace assistant for managing deliverables, timelines, and tools. Be concise, direct, helpful, and natural. Never sound robotic or use AI jargon."
-    response_text = call_llm(llm_system, llm_prompt)
-    if not response_text:
+    # If it's pure chat or explanation
+    response_text = parsed.get("response") or llm_resp
+    if not response_text or len(response_text) < 10:
         response_text = (
-            "Welcome to Chronos. Add a project link, timeline, or upcoming deadline to map out your milestones, "
-            "organize delivery phases, and configure tools."
+            f"I have mapped out the details for **{recent_event['title'] if recent_event else 'your project'}**. "
+            "Let me know if you would like me to adjust any milestone dates, configure additional MCP tools, or sync to your Google Calendar."
         )
 
     return {

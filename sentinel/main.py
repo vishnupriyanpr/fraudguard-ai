@@ -5,11 +5,12 @@ Task Decomposer, MCP Integrator, Internal Calendar, and Executive Notifications.
 """
 
 import os
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse, Response
 from pydantic import BaseModel
 
 from sentinel.db import (
@@ -383,9 +384,9 @@ def get_all_integrations_status():
         "whatsapp": whatsapp_connector.get_status()
     }
 
-@app.post("/api/integrations/google-calendar/sync")
-def sync_google_calendar(event_id: Optional[int] = Query(None)):
-    """Synchronizes tasks & milestones for an event to Google Calendar."""
+@app.get("/api/calendar/export.ics")
+def export_calendar_ics(event_id: Optional[int] = Query(None)):
+    """Exports RFC 5545 compliant iCalendar (.ics) file with all milestone alarms."""
     events = get_events()
     target_event = None
     if event_id:
@@ -393,12 +394,70 @@ def sync_google_calendar(event_id: Optional[int] = Query(None)):
     elif events:
         target_event = events[0]
         
-    if not target_event:
-        raise HTTPException(status_code=400, detail="No active event found to synchronize.")
+    title = target_event["title"] if target_event else "CHRONOS Workspace Deadlines"
+    deadline = target_event.get("deadline") if target_event else None
+    event_id_val = target_event["id"] if target_event else None
+    
+    tasks = get_tasks(event_id_val)
+    ics_content = gcal_connector.generate_icalendar(title, deadline, tasks)
+    
+    return Response(
+        content=ics_content,
+        media_type="text/calendar; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="chronos_milestones.ics"',
+            "Cache-Control": "no-cache, no-store, must-revalidate"
+        }
+    )
+
+@app.post("/api/integrations/google-calendar/sync")
+def sync_google_calendar(event_id: Optional[int] = Query(None)):
+    """Synchronizes tasks & milestones for an event to Google Calendar with real web intent and .ics package."""
+    events = get_events()
+    target_event = None
+    if event_id:
+        target_event = get_event(event_id)
+    elif events:
+        target_event = events[0]
         
-    tasks = get_tasks(target_event["id"])
-    result = gcal_connector.sync_milestones(target_event["title"], tasks)
+    event_title = target_event["title"] if target_event else "CHRONOS Workspace Deliverables"
+    event_deadline = target_event.get("deadline") if target_event else None
+    event_id_val = target_event["id"] if target_event else None
+        
+    tasks = get_tasks(event_id_val)
+    result = gcal_connector.sync_milestones(event_title, tasks, event_deadline)
     return result
+
+@app.get("/api/database/verify")
+def verify_local_database():
+    """Runs a real PRAGMA integrity check and counts rows across all local tables."""
+    import sqlite3
+    db_path = os.path.join(os.path.dirname(__file__), "..", "chronos.db")
+    if not os.path.exists(db_path):
+        db_path = "chronos.db"
+    
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA integrity_check")
+    integrity = cursor.fetchone()[0]
+    
+    tables = ["events", "tasks", "mcp_configs", "event_links", "event_research", "reminders"]
+    counts = {}
+    for tbl in tables:
+        try:
+            cursor.execute(f"SELECT count(*) FROM {tbl}")
+            counts[tbl] = cursor.fetchone()[0]
+        except Exception:
+            counts[tbl] = 0
+            
+    conn.close()
+    return {
+        "status": "HEALTHY" if integrity == "ok" else "WARNING",
+        "integrity_check": integrity,
+        "database": "chronos.db (SQLite 3)",
+        "row_counts": counts,
+        "verified_at": datetime.now(timezone.utc).isoformat()
+    }
 
 @app.post("/api/integrations/whatsapp/send")
 def send_whatsapp_digest(req: WhatsAppSendRequest):
