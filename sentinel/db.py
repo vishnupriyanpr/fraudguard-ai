@@ -155,14 +155,30 @@ def create_event(title: str, deadline: str, category: str = 'hackathon', descrip
     conn.close()
     return event_id
 
-def get_events() -> List[Dict[str, Any]]:
+def get_events(order_by: str = "deadline ASC") -> List[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM events ORDER BY deadline ASC")
+    allowed_orders = {
+        "deadline ASC": "deadline ASC",
+        "deadline DESC": "deadline DESC",
+        "id DESC": "id DESC",
+        "id ASC": "id ASC",
+        "created_at DESC": "created_at DESC"
+    }
+    order_clause = allowed_orders.get(order_by, "deadline ASC")
+    cursor.execute(f"SELECT * FROM events ORDER BY {order_clause}")
     rows = cursor.fetchall()
     events = [dict(row) for row in rows]
     conn.close()
     return events
+
+def get_latest_event() -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM events ORDER BY id DESC LIMIT 1")
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
 
 def get_event(event_id: int) -> Optional[Dict[str, Any]]:
     conn = get_connection()

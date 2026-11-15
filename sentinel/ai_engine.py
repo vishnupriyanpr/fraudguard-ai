@@ -253,6 +253,20 @@ def synthesize_research(event_title: str, category: str, deadline: str, links: L
             if all(k in data for k in ["summary", "clarification_questions"]):
                 if "category" not in data:
                     data["category"] = effective_cat
+                qs = data.get("clarification_questions", [])
+                if not isinstance(qs, list):
+                    qs = [str(qs)]
+                fallback_qs = [
+                    "What specific track or challenge problem are you prioritizing?",
+                    "What programming language and framework stack do you plan to use?",
+                    "What are the critical milestone deliverables you need backwards-scheduled?"
+                ]
+                for fq in fallback_qs:
+                    if len(qs) >= 3:
+                        break
+                    if fq not in qs:
+                        qs.append(fq)
+                data["clarification_questions"] = qs[:3]
                 return data
         except Exception:
             pass
@@ -425,11 +439,10 @@ def generate_phased_tasks(event_id: int, event_title: str, deadline_str: str,
             }
         ]
     else:
-        focus_tag = f" focused on {user_focus}" if user_focus else ""
         tasks = [
             {
                 "event_id": event_id,
-                "title": f"Phase 1: Project Scaffold & Environment Setup{focus_tag}",
+                "title": "Phase 1: Architecture Scaffold & Runtime Environment Setup",
                 "description": "Initialize clean Git repo, configure environment variables, install core runtime dependencies.",
                 "phase": "Phase 1: Setup",
                 "due_date": d_setup,
@@ -457,11 +470,11 @@ def generate_phased_tasks(event_id: int, event_title: str, deadline_str: str,
             {
                 "event_id": event_id,
                 "title": "Phase 4: Record Demo Walkthrough, Write README & Submit Portal",
-                "description": "Capture 2-minute concise product video, finalize documentation, and submit to portal before deadline buffer.",
+                "description": "Capture concise product demo, finalize documentation, and submit to portal before deadline buffer.",
                 "phase": "Phase 4: Submission",
                 "due_date": d_submit,
                 "priority": "high",
-                "assigned_mcp": "GitHub MCP + Slack MCP"
+                "assigned_mcp": "GitHub MCP + Chrome DevTools MCP"
             }
         ]
     return tasks
@@ -596,8 +609,22 @@ def process_chat_turn(user_text: str) -> Dict[str, Any]:
         }
 
     # 2. Conversational & Milestone Reasoning with Real Model Thinking
-    events = get_events()
-    recent_event = events[0] if events else None
+    all_events = get_events(order_by="id DESC")
+    recent_event = None
+    
+    # Check if user message or recent chat references any existing event by name or keyword
+    for ev in all_events:
+        ev_title_lower = ev.get("title", "").lower()
+        if ev_title_lower and ev_title_lower in user_text_clean.lower():
+            recent_event = ev
+            break
+        title_keywords = [w for w in re.split(r'\W+', ev_title_lower) if len(w) >= 4 and w not in ["hackathon", "milestone", "submission", "challenge", "frontier"]]
+        if any(kw in user_text_clean.lower() for kw in title_keywords):
+            recent_event = ev
+            break
+            
+    if not recent_event and all_events:
+        recent_event = all_events[0]
     
     # Check if user is explicitly correcting event category (e.g. "conference", "not hackathon", "register")
     if recent_event:
