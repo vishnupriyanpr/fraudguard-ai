@@ -19,16 +19,6 @@
       ],
       "env": {}
     },
-    "firecrawl": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "firecrawl-mcp"
-      ],
-      "env": {
-        "FIRECRAWL_API_KEY": "fc-7fb70348115f41e69e9c75680e2015be"
-      }
-    },
     "chrome-devtools": {
       "command": "npx",
       "args": [

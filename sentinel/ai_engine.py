@@ -319,7 +319,7 @@ def generate_phased_tasks(event_id: int, event_title: str, deadline_str: str,
             "phase": "Phase 2: MVP Core",
             "due_date": d_core,
             "priority": "high",
-            "assigned_mcp": "SQLite MCP + Firecrawl MCP"
+            "assigned_mcp": "SQLite MCP + Filesystem MCP"
         },
         {
             "event_id": event_id,

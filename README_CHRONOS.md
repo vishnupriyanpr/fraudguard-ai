@@ -37,7 +37,7 @@ Built on an editorial monochrome design language powered by **PaceUI** and **sha
 | **Autonomous Link Ingestion** | [`sentinel/scraper.py`](sentinel/scraper.py) | Headless HTML & Markdown crawler that extracts target deadlines, evaluation criteria, prize tracks, and tech constraints. |
 | **Progressive Scoping Agent** | [`sentinel/ai_engine.py`](sentinel/ai_engine.py) | Progressive disclosure chatbot that queries user priority tracks and architecture mode before decomposing tasks. |
 | **Backwards Milestone Scheduler** | [`sentinel/ai_engine.py`](sentinel/ai_engine.py) | Backwards-calculates milestone intervals (Setup 15%, Core 50%, UI/Polish 80%, Submission Buffer 95%). |
-| **Dynamic MCP Tool Resolver** | [`sentinel/mcp_manager.py`](sentinel/mcp_manager.py) | Analyzes task requirements and auto-configures GitHub, Firecrawl, DevTools, SQLite, Filesystem, and TigerGraph MCPs into `mcp_servers.json`. |
+| **Dynamic MCP Tool Resolver** | [`sentinel/mcp_manager.py`](sentinel/mcp_manager.py) | Analyzes task requirements and auto-configures GitHub, DevTools, SQLite, Filesystem, and TigerGraph MCPs into `mcp_servers.json`. |
 | **Multi-Channel Social Dispatcher** | [`sentinel/channel_service.py`](sentinel/channel_service.py) | Connectors for WhatsApp, Telegram, Discord, and Slack with integrated test ping simulation. |
 | **Non-Nosy Sentinel Daemon** | [`sentinel/reminder_service.py`](sentinel/reminder_service.py) | Asynchronous background worker monitoring deadlines with intelligent cooldown limits (maximum 1 notification per hour). |
 | **PaceUI Monochrome Command Deck** | [`sentinel/static/`](sentinel/static/) | 4-view workspace (Chat Sentinel, Timeline Matrix, MCP Orchestrator, Social Dispatcher) with live countdown radar. |
@@ -253,7 +253,6 @@ CHRONOS dynamically generates and maintains a compliant `mcp_servers.json` file 
 | MCP Tool | Execution Command | Purpose in Hackathon Workflow |
 | :--- | :--- | :--- |
 | **GitHub MCP** | `npx -y @modelcontextprotocol/server-github` | Autonomous repository branching, progressive commits, pull requests, and submission tags. |
-| **Firecrawl MCP** | `npx -y firecrawl-mcp` | Deep-web documentation extraction, competitor research, and live portal scraping. |
 | **Chrome DevTools MCP** | `npx -y chrome-devtools-mcp` | Automated headless UI verification, layout audits, and demo screenshot capture. |
 | **SQLite MCP** | `npx -y @modelcontextprotocol/server-sqlite` | Direct querying and persistence inspection of local application state. |
 | **Filesystem MCP** | `npx -y @modelcontextprotocol/server-filesystem .` | Controlled local directory read/write access for automated codebase scaffolding. |

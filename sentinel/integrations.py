@@ -224,20 +224,6 @@ class AgentToolBuilderManager:
                 }
             }
         },
-        "firecrawl": {
-            "id": "firecrawl",
-            "name": "Firecrawl Scraper Tool",
-            "version": "1.2.0",
-            "description": "Autonomous deep-web scraping and Markdown extraction for competitor research and portal scraping.",
-            "category": "Web Intelligence",
-            "parameters": {
-                "url": {
-                    "type": "string",
-                    "description": "URL to test scrape and extract clean markdown content",
-                    "default": "https://example.com"
-                }
-            }
-        },
         "google_calendar": {
             "id": "google_calendar",
             "name": "Google Calendar Sync Tool",
@@ -389,17 +375,6 @@ class AgentToolBuilderManager:
                 "status": "HEALTHY" if res.get("success") else "ERROR",
                 "output": res,
                 "stdout": res.get("message") or f"Dispatched alert to {res.get('target')}"
-            }
-
-        elif tool_id == "firecrawl":
-            latency = round((time.time() - start_time) * 1000, 2)
-            return {
-                "tool_id": tool_id,
-                "success": True,
-                "latency_ms": latency,
-                "status": "HEALTHY",
-                "output": {"url": params.get("url", "https://example.com"), "bytes_extracted": 1420},
-                "stdout": f"Firecrawl scraper reachable. Tested extraction on {params.get('url', 'https://example.com')} in {latency}ms."
             }
 
         else:

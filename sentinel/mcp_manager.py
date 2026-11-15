@@ -20,16 +20,6 @@ MCP_CATALOG = {
         "env_required": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
         "recommended_for": "Code tracking, submission tagging, and team collaboration"
     },
-    "firecrawl": {
-        "name": "Firecrawl MCP",
-        "description": "Autonomous deep-web scraping and Markdown extraction for competitor research and portal scraping.",
-        "keywords": ["scrape", "crawl", "web", "research", "portal", "link", "documentation", "rules"],
-        "package": "firecrawl-mcp",
-        "command": "npx",
-        "args": ["-y", "firecrawl-mcp"],
-        "env_required": ["FIRECRAWL_API_KEY"],
-        "recommended_for": "Autonomous document extraction and competitor benchmarking"
-    },
     "chrome-devtools": {
         "name": "Chrome DevTools MCP",
         "description": "Headless browser control, UI element inspection, automated responsiveness checks, and demo screenshots.",
