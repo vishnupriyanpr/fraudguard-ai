@@ -41,6 +41,21 @@ html, body {
   padding: 0;
 }
 
+#sidebar {
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+  flex-shrink: 0 !important;
+}
+
+#send-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 8px !important;
+}
+
 .font-mono, code, kbd, select.font-mono {
   font-family: var(--font-mono) !important;
 }

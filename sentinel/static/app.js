@@ -38,6 +38,7 @@ async function initApp() {
 
   startLiveClock();
   startRadarCountdown();
+  handleChatInputChange();
   await loadModels();
   await loadChatHistory();
   await loadBriefing();
@@ -449,21 +450,34 @@ function renderMessageHtml(msg) {
 
   return `
     <div class="flex items-start gap-3.5 max-w-3xl animate-fadeIn my-5 group">
-      <div class="size-7 rounded-lg bg-zinc-900 flex items-center justify-center text-white shrink-0 mt-0.5">
-        <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
+      <!-- Branded Monogram Avatar -->
+      <div class="size-7 rounded-lg bg-zinc-950 flex items-center justify-center text-white shrink-0 mt-0.5 font-bold font-sans text-xs tracking-tight shadow-2xs select-none">
+        C
       </div>
-      <div class="flex-1 space-y-2.5">
-        <div class="text-[14.5px] text-zinc-900 leading-relaxed message-content font-normal">
+      <div class="flex-1 space-y-2.5 min-w-0">
+        <!-- Assistant Header -->
+        <div class="flex items-center gap-2 text-[12px]">
+          <span class="font-bold tracking-tight text-zinc-900">CHRONOS</span>
+          <span class="px-1.5 py-0.2 rounded text-[10.5px] font-mono bg-zinc-100 text-zinc-600 border border-zinc-200/60 font-medium">${escapeHtml(state.activeModel || 'Local')}</span>
+        </div>
+        
+        <!-- Assistant Content -->
+        <div class="text-[14.5px] text-zinc-800 leading-[1.65] message-content font-normal break-words">
           ${formattedContent}
         </div>
+        
         ${cardHtml}
-        <div class="flex items-center gap-2 pt-0.5 text-[11.5px] text-zinc-400">
-          <span class="font-medium text-zinc-600">Chronos</span>
+        
+        <!-- Assistant Action Footer -->
+        <div class="flex items-center gap-3 pt-1 text-[11.5px] text-zinc-400">
+          <button onclick="copyMessageText(this)" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors flex items-center gap-1">
+            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy</span>
+          </button>
           <span>·</span>
-          <button onclick="copyMessageText(this)" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors">Copy</button>
+          <button onclick="switchView('matrix')" class="hover:text-zinc-900 cursor-pointer font-medium transition-colors">
+            Timeline
+          </button>
         </div>
       </div>
     </div>
@@ -632,6 +646,7 @@ async function handleSend(e) {
   if (!text) return;
 
   if (input) input.value = "";
+  handleChatInputChange();
   state.isProcessing = true;
 
   const container = document.getElementById("chat-history");
@@ -739,6 +754,7 @@ async function handleSend(e) {
     console.error("Chat error:", err);
   } finally {
     state.isProcessing = false;
+    handleChatInputChange();
   }
 }
 
@@ -1818,21 +1834,92 @@ function copyToClipboard(text, btn) {
 
 function formatMarkdown(text) {
   if (!text) return "";
-  let html = escapeHtml(text);
 
-  // Bold
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-[#111]">$1</strong>');
-  // Inline Code
-  html = html.replace(/`(.*?)`/g, '<code class="font-mono text-[13px] bg-zinc-100 text-[#111] border border-[#e4e4e7] px-1.5 py-0.5 rounded">$1</code>');
-  // Numbered list items
-  html = html.replace(/^(\d+)\.\s+(.*)$/gm, '<div class="flex items-start gap-2.5 my-2"><span class="shrink-0 font-mono text-[13px] font-bold text-[#111] bg-zinc-100 rounded px-1.5 py-0.5 border border-[#e4e4e7]">$1</span><span class="text-[#111] text-[15px] font-bold leading-relaxed">$2</span></div>');
-  // Bullet list items
-  html = html.replace(/^[-*]\s+(.*)$/gm, '<div class="flex items-start gap-2.5 my-1.5"><span class="size-1.5 rounded-full bg-[#111] mt-2 shrink-0"></span><span class="text-[#111] text-[15px] font-bold leading-relaxed">$1</span></div>');
-  // Paragraphs & Line breaks
+  // 1. Extract fenced code blocks first so inner content isn't mangled
+  const codeBlocks = [];
+  let processed = text.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+    const placeholder = `__CHRONOS_CODE_BLOCK_${codeBlocks.length}__`;
+    codeBlocks.push({ lang: lang || "shell", code: code.trim() });
+    return placeholder;
+  });
+
+  // 2. Escape HTML on prose
+  let html = escapeHtml(processed);
+
+  // 3. Headings (#, ##, ###)
+  html = html.replace(/^###\s+(.*)$/gm, '<h4 class="text-[14.5px] font-bold text-zinc-900 mt-3 mb-1 tracking-tight">$1</h4>');
+  html = html.replace(/^##\s+(.*)$/gm, '<h3 class="text-[15.5px] font-bold text-zinc-950 mt-3.5 mb-1.5 tracking-tight">$1</h3>');
+  html = html.replace(/^#\s+(.*)$/gm, '<h2 class="text-[17px] font-black text-zinc-950 mt-4 mb-2 tracking-tight">$1</h2>');
+
+  // 4. Blockquotes (> text)
+  html = html.replace(/^>\s+(.*)$/gm, '<div class="border-l-2 border-zinc-300 pl-3.5 py-1 my-2 text-[13.5px] text-zinc-600 italic bg-zinc-50/60 rounded-r-md leading-relaxed">$1</div>');
+
+  // 5. Bold & Italic
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-zinc-950">$1</strong>');
+  html = html.replace(/\*(.*?)\*/g, '<em class="italic text-zinc-800">$1</em>');
+
+  // 6. Inline Code (`code`)
+  html = html.replace(/`(.*?)`/g, '<code class="font-mono text-[12px] bg-zinc-100 text-zinc-800 border border-zinc-200/80 px-1.5 py-0.5 rounded font-medium">$1</code>');
+
+  // 7. Markdown links [text](url)
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-zinc-900 underline underline-offset-2 hover:text-black font-medium transition-colors">$1</a>');
+
+  // 8. Numbered list items (1. item)
+  html = html.replace(/^(\d+)\.\s+(.*)$/gm, '<div class="flex items-start gap-2.5 my-1.5"><span class="shrink-0 font-mono text-[11px] font-semibold text-zinc-500 bg-zinc-100 rounded px-1.5 py-0.5 border border-zinc-200/60 mt-0.5">$1</span><span class="text-zinc-800 text-[14px] leading-relaxed font-normal flex-1">$2</span></div>');
+
+  // 9. Bullet list items (- item or * item)
+  html = html.replace(/^[-*]\s+(.*)$/gm, '<div class="flex items-start gap-2.5 my-1.5"><span class="size-1.5 rounded-full bg-zinc-400 mt-2 shrink-0"></span><span class="text-zinc-800 text-[14px] leading-relaxed font-normal flex-1">$1</span></div>');
+
+  // 10. Paragraphs & Line breaks
   html = html.replace(/\n\n/g, '<div class="h-2.5"></div>');
   html = html.replace(/\n/g, '<br>');
 
+  // 11. Restore code blocks with syntax styled card and 1-click copy
+  codeBlocks.forEach((b, idx) => {
+    const escapedCode = escapeHtml(b.code);
+    const card = `
+      <div class="my-3 rounded-xl border border-zinc-200 bg-zinc-950 text-zinc-100 overflow-hidden text-[12.5px] font-mono shadow-2xs">
+        <div class="flex items-center justify-between px-3.5 py-1.5 bg-zinc-900 border-b border-zinc-800 text-[11px] text-zinc-400">
+          <span class="font-medium lowercase">${escapeHtml(b.lang)}</span>
+          <button onclick="copyPreCode(this)" class="hover:text-white transition-colors cursor-pointer flex items-center gap-1 font-sans">
+            <svg class="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <pre class="p-3.5 overflow-x-auto leading-relaxed text-[12px]"><code class="text-zinc-200 font-mono">${escapedCode}</code></pre>
+      </div>
+    `;
+    html = html.replace(`__CHRONOS_CODE_BLOCK_${idx}__`, card);
+  });
+
   return html;
+}
+
+function copyPreCode(btn) {
+  const container = btn.closest(".my-3");
+  const codeEl = container ? container.querySelector("code") : null;
+  const text = codeEl ? codeEl.innerText : "";
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = `<span class="text-emerald-400">Copied!</span>`;
+    showToast("Code copied to clipboard", "info", 1500);
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  });
+}
+
+function handleChatInputChange() {
+  const input = document.getElementById("chat-input");
+  const btn = document.getElementById("send-btn");
+  if (!input || !btn) return;
+  const hasText = input.value.trim().length > 0;
+  if (hasText && !state.isProcessing) {
+    btn.disabled = false;
+    btn.className = "absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-zinc-900 text-white hover:bg-zinc-800 active:scale-95 transition-all flex items-center justify-center cursor-pointer shadow-2xs";
+  } else {
+    btn.disabled = true;
+    btn.className = "absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-zinc-100 text-zinc-400 transition-all flex items-center justify-center cursor-not-allowed";
+  }
 }
 
 function escapeHtml(str) {
