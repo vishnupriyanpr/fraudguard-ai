@@ -587,8 +587,8 @@ function renderBriefingCard(meta) {
             ${escapeHtml(briefing.header || 'Executive Priority Briefing')}
           </span>
         </div>
-        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-          <span class="size-1.5 rounded-full bg-emerald-500"></span>
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+          <svg class="size-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           Active
         </span>
       </div>
@@ -1011,8 +1011,8 @@ function renderFullCalendar() {
                 <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-zinc-900 text-white tracking-wide uppercase">
                   Target Submission Deadline
                 </span>
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                  <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                  <svg class="size-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                   Active Target
                 </span>
               </div>
@@ -1033,7 +1033,7 @@ function renderFullCalendar() {
 
             <div class="flex flex-wrap items-center gap-3 pt-1 text-[12px] text-zinc-500 font-medium">
               <span class="inline-flex items-center gap-1.5 text-emerald-700 font-semibold">
-                <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                <svg class="size-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span>Automated calendar sync &amp; reminder schedule</span>
               </span>
               <span>·</span>
@@ -1422,7 +1422,9 @@ function renderAgentToolsCatalog() {
             <div class="text-[11.5px] font-mono text-zinc-500 mt-0.5">${escapeHtml(tool.category)}</div>
           </div>
           <div class="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-medium ${diagnostic && diagnostic.success ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-zinc-100 text-zinc-700'}">
-            <span class="size-1.5 rounded-full ${diagnostic && diagnostic.success ? 'bg-emerald-500' : 'bg-zinc-400'}"></span>
+            ${diagnostic && diagnostic.success 
+              ? `<svg class="size-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>` 
+              : `<span class="size-1.5 rounded-full bg-zinc-400"></span>`}
             <span>${statusText}</span>
           </div>
         </div>
@@ -1519,6 +1521,7 @@ function switchToolTab(tabName) {
     if (configBtn) configBtn.className = "filter-btn filter-btn-active";
     if (catalogList) catalogList.classList.add("hidden");
     if (configList) configList.classList.remove("hidden");
+    renderFullMcps();
   }
 }
 
@@ -1592,16 +1595,28 @@ async function triggerWhatsAppBriefing() {
 async function loadMcps() {
   try {
     const res = await fetch("/api/mcps");
-    state.mcps = await res.json();
+    const rawMcps = await res.json();
+    
+    // Deduplicate by unique MCP name to guarantee zero repeat cards
+    const uniqueMcps = [];
+    const seen = new Set();
+    for (const m of (rawMcps || [])) {
+      const key = (m.mcp_name || '').toLowerCase().trim();
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueMcps.push(m);
+      }
+    }
+    state.mcps = uniqueMcps;
     
     const listEl = document.getElementById("sidebar-mcp-list");
     const moreEl = document.getElementById("sidebar-mcp-more");
     if (listEl) {
       const top3 = state.mcps.slice(0, 3);
       listEl.innerHTML = top3.map(m => `
-        <div class="flex items-center justify-between text-[13px] font-mono">
-          <span class="text-zinc-600 truncate">${escapeHtml(m.mcp_name)}</span>
-          <span class="size-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+        <div onclick="runToolDiagnostic('${m.mcp_name.toLowerCase()}')" class="flex items-center justify-between p-2 rounded-md border border-zinc-200/70 hover:bg-zinc-50 cursor-pointer text-[12px] font-normal text-zinc-700 transition-colors">
+          <span class="truncate">${escapeHtml(m.mcp_name)}</span>
+          <svg class="size-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
       `).join("");
       
@@ -1618,6 +1633,9 @@ async function loadMcps() {
     const countEl = document.getElementById("sidebar-mcp-count");
     if (countEl) countEl.textContent = state.mcps.length;
 
+    const tabConfiguredBtn = document.getElementById("tool-tab-configured");
+    if (tabConfiguredBtn) tabConfiguredBtn.textContent = `MCP Servers (${state.mcps.length})`;
+
     if (state.activeView === 'mcps') renderFullMcps();
   } catch (err) {
     console.error("Failed to load MCPs:", err);
@@ -1629,26 +1647,42 @@ function renderFullMcps() {
   if (!container) return;
 
   if (state.mcps.length === 0) {
-    container.innerHTML = '<div class="text-[14px] text-zinc-500 col-span-2 p-6 bg-zinc-50 rounded-xl border border-[#e4e4e7]">No active MCP configurations yet. Ingest an event to generate.</div>';
+    container.innerHTML = '<div class="text-[13.5px] text-zinc-500 col-span-full p-6 bg-zinc-50 rounded-xl border border-zinc-200">No active MCP configurations yet. Ingest an event to generate.</div>';
     return;
   }
 
-  container.innerHTML = state.mcps.map(m => `
-    <div class="p-5 rounded-xl border border-[#e4e4e7] bg-white space-y-3 shadow-2xs">
-      <div class="flex items-center justify-between">
-        <span class="text-[15px] font-bold text-[#111]">${escapeHtml(m.mcp_name)}</span>
-        <span class="px-2 py-0.5 rounded text-[12px] font-mono font-semibold bg-zinc-100 text-[#111]">
-          ${m.is_installed ? 'Installed' : 'Ready'}
+  // Deduplicate as well
+  const uniqueList = [];
+  const seen = new Set();
+  for (const m of (state.mcps || [])) {
+    const key = (m.mcp_name || '').toLowerCase().trim();
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueList.push(m);
+    }
+  }
+
+  container.innerHTML = uniqueList.map(m => `
+    <div class="p-5 rounded-xl border border-zinc-200 bg-white space-y-3.5 shadow-2xs">
+      <div class="flex items-center justify-between border-b border-zinc-100 pb-3">
+        <span class="text-[14.5px] font-semibold text-zinc-900">${escapeHtml(m.mcp_name)}</span>
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+          <svg class="size-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>${m.is_installed ? 'Installed' : 'Ready'}</span>
         </span>
       </div>
-      <p class="text-[13px] text-zinc-600 leading-relaxed font-bold">${escapeHtml(m.description)}</p>
-      <div class="flex items-center gap-2 pt-1">
-        <code class="flex-1 text-[13px] font-mono font-semibold p-2 rounded bg-zinc-50 border border-[#e4e4e7] text-[#111] truncate">
-          ${escapeHtml(m.install_command)}
-        </code>
-        <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="px-3 py-1.5 rounded bg-[#111] text-white text-[13px] font-semibold hover:bg-zinc-800 transition-colors cursor-pointer shrink-0">
-          Copy
-        </button>
+      <p class="text-[12.5px] text-zinc-600 leading-relaxed font-normal">${escapeHtml(m.description)}</p>
+      <div class="space-y-1.5 pt-1 border-t border-zinc-100">
+        <div class="text-[11px] font-medium text-zinc-400">Install / Execution Command:</div>
+        <div class="flex items-center gap-2">
+          <code class="flex-1 text-[12px] font-mono px-2.5 py-1.5 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-800 truncate select-all">
+            ${escapeHtml(m.install_command)}
+          </code>
+          <button onclick="copyToClipboard('${escapeHtml(m.install_command)}', this)" class="h-8 px-3 rounded-lg border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 text-[12px] font-medium transition-colors cursor-pointer shrink-0 flex items-center gap-1.5">
+            <svg class="size-3 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy</span>
+          </button>
+        </div>
       </div>
     </div>
   `).join("");
@@ -1842,8 +1876,8 @@ function renderChatHistoryDrawer() {
     <!-- Active Current Session Card -->
     <div class="p-4 rounded-xl border-2 border-[#111] bg-white space-y-2 shadow-2xs">
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="size-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <div class="flex items-center gap-1.5">
+          <svg class="size-3.5 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           <span class="text-[12px] font-mono font-extrabold uppercase text-[#111]">Active Session</span>
         </div>
         <span class="text-[11px] font-mono text-zinc-400 font-bold">${lastActive}</span>

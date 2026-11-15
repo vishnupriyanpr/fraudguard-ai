@@ -356,6 +356,20 @@ def save_mcp_config(event_id: int, mcp_name: str, description: str, install_comm
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().isoformat()
+    # Deduplication check: check if an MCP server with the same name already exists
+    cursor.execute("SELECT id FROM mcp_configs WHERE LOWER(mcp_name) = LOWER(?)", (mcp_name.strip(),))
+    existing = cursor.fetchone()
+    if existing:
+        mcp_id = existing[0]
+        cursor.execute("""
+            UPDATE mcp_configs 
+            SET event_id = ?, description = ?, install_command = ?, config_json = ?, is_active = 1
+            WHERE id = ?
+        """, (event_id, description, install_command, json.dumps(config_json), mcp_id))
+        conn.commit()
+        conn.close()
+        return mcp_id
+
     cursor.execute("""
         INSERT INTO mcp_configs (event_id, mcp_name, description, install_command, config_json, is_installed, is_active, created_at)
         VALUES (?, ?, ?, ?, ?, 0, 1, ?)
@@ -368,10 +382,23 @@ def save_mcp_config(event_id: int, mcp_name: str, description: str, install_comm
 def get_mcp_configs(event_id: Optional[int] = None) -> List[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
+    # Deduplicate by LOWER(mcp_name), always selecting the latest row per unique tool
     if event_id:
-        cursor.execute("SELECT * FROM mcp_configs WHERE event_id = ?", (event_id,))
+        cursor.execute("""
+            SELECT * FROM mcp_configs 
+            WHERE event_id = ? AND id IN (
+                SELECT MAX(id) FROM mcp_configs WHERE event_id = ? GROUP BY LOWER(mcp_name)
+            )
+            ORDER BY id ASC
+        """, (event_id, event_id))
     else:
-        cursor.execute("SELECT * FROM mcp_configs")
+        cursor.execute("""
+            SELECT * FROM mcp_configs 
+            WHERE id IN (
+                SELECT MAX(id) FROM mcp_configs GROUP BY LOWER(mcp_name)
+            )
+            ORDER BY id ASC
+        """)
     rows = cursor.fetchall()
     configs = []
     for row in rows:
